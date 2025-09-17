@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Paramètres - Daily Home Kid Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css?v=4.4.0">
+  <style>
+    /* Récompenses hebdo - toujours en ligne */
+    .reward-week {
+      display: grid;
+      grid-template-columns: 8ch 1fr 1fr auto; /* clé + palier1 + palier2 + bouton */
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0.4rem 0;
+    }
+
+    .reward-week input[type="text"] {
+      width: 100%;
+      padding: 0.3rem;
+      font-size: 0.85rem;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .reward-week input[disabled] {
+      background: #f1f1f1;
+      color: #555;
+      text-align: center;
+    }
+
+/* Weights (toujours en ligne + centré) */
+.weights-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 jours */
+  gap: 1rem; /* espace plus large entre les colonnes */
+  justify-content: center; /* centre le bloc */
+  margin: 0.5rem auto; /* centre horizontalement */
+  max-width: 700px; /* largeur max pour garder un bon équilibre */
+}
+
+.weights-grid label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.weights-grid input[type=number] {
+  width: 100%;
+  padding: 0.3rem;
+  font-size: 0.8rem;
+  text-align: center;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-left">
+    <button class="menu-toggle" onclick="toggleMenu()">🍔</button>
+    <nav id="navMenu">
+      <a href="index.html">🏠</a>
+      <a href="settings.html">⚙️</a>
+      <a href="about.html">ℹ️</a>
+      <a href="install.html">📲</a>
+    </nav>
+  </div>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙/☀️</button>
+</header>
+
+<main id="mainContent">
+  <h1>⚙️ Paramètres</h1>
+
+  <div class="child-nav">
+    <button onclick="prevChildSettings()">⬅️</button>
+    <h2 id="childTitle">Enfant …</h2>
+    <button onclick="nextChildSettings()">➡️</button>
+  </div>
+
+  <div id="childrenSettings"></div>
+  <div class="pagination" id="pagination"></div>
+
+  <div class="actions">
+    <button class="btn" onclick="ajouterEnfant()">➕ Ajouter un enfant</button>
+    <button class="btn btn-edit" onclick="importerEnfant()">📥 Importer un enfant</button>
+    <button class="btn" onclick="sauver()">💾 Enregistrer</button>
+    <button class="btn btn-danger" onclick="resetAll()">🔄 Réinitialiser enfants</button>
+    <button class="btn" onclick="exporterEnfant(currentChild)">📤 Exporter cet enfant</button>
+    <button class="btn btn-danger" onclick="window.location.href='purge.html'">💣 Purge totale</button>
+  </div>
+</main>
+
+<footer>
+  ⚡ Version V4.4
+</footer>
+
+<script>
+/* 🌙 Dark mode */
+if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add("dark");
+if(localStorage.getItem("darkMode")==="true")document.body.classList.add("dark");
+function toggleDarkMode(){ document.body.classList.toggle("dark"); localStorage.setItem("darkMode",document.body.classList.contains("dark")); }
+function toggleMenu(){ document.getElementById("navMenu").classList.toggle("show"); }
+
+/* Chargement + normalisation */
+let children = JSON.parse(localStorage.getItem("children")) || [];
+children = (children || []).map(c => {
+  if (!c.settings) c.settings = {};
+  if (!c.settings.childName) c.settings.childName = "";
+  if (!c.settings.rewardLow) c.settings.rewardLow = "";
+  if (!c.settings.rewardHigh) c.settings.rewardHigh = "";
+  if (!c.settings.thresholdLow && c.settings.thresholdLow !== 0) c.settings.thresholdLow = 30;
+  if (!c.settings.thresholdHigh && c.settings.thresholdHigh !== 0) c.settings.thresholdHigh = 50;
+  if (!c.settings.rewards) c.settings.rewards = {};
+  if (!c.tasks) c.tasks = [];
+  c.tasks = c.tasks.map(t => { if (!t.name) t.name = ""; if (!t.weights) t.weights = [1,1,1,1,1,0,0]; return t; });
+  return c;
+});
+
+/* Navigation */
+let currentChild = 0;
+function prevChildSettings(){ if(currentChild>0){ currentChild--; render(); } }
+function nextChildSettings(){ if(currentChild<children.length-1){ currentChild++; render(); } }
+function goToChild(idx){ currentChild = idx; render(); }
+
+/* Autosave */
+let _saveTimer=null;
+function autoSave(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(()=>{localStorage.setItem("children",JSON.stringify(children));},300); }
+
+/* Sauvegarde manuelle (bouton Enregistrer) */
+function sauver(){
+  try{
+    localStorage.setItem("children", JSON.stringify(children));
+    alert("✅ Paramètres enregistrés");
+  }catch(e){
+    alert("❌ Erreur d'enregistrement : " + e.message);
+  }
+}
+
+/* Fonctions enfants/tâches */
+function ajouterEnfant(){ children.push({ settings:{childName:"Nouvel enfant",rewardLow:"",rewardHigh:"",thresholdLow:30,thresholdHigh:50,rewards:{}}, tasks:[] }); currentChild=children.length-1; autoSave(); render(); }
+function supprimerEnfant(idx){ if(confirm("Supprimer cet enfant ?")){ children.splice(idx,1); if(currentChild>=children.length) currentChild=children.length-1; autoSave(); render(); } }
+function resetAll(){ if(confirm("⚠️ Réinitialiser tous les enfants ?")){ children=[]; currentChild=0; autoSave(); render(); } }
+function ajouterTache(cIdx){ children[cIdx].tasks.push({name:"",weights:[1,1,1,1,1,0,0]}); autoSave(); render(); }
+function supprimerTache(cIdx,tIdx){ children[cIdx].tasks.splice(tIdx,1); autoSave(); render(); }
+function moveTask(cIdx, tIdx, direction){ const tasks = children[cIdx].tasks; const newIdx = tIdx + direction; if(newIdx<0 || newIdx>=tasks.length) return; const [moved] = tasks.splice(tIdx,1); tasks.splice(newIdx,0,moved); autoSave(); render(); }
+function ajouterReward(cIdx){ const key=prompt("Clé de la semaine (ex: 12-2025) :"); if(key){ children[cIdx].settings.rewards[key]={low:"",high:""}; autoSave(); render(); } }
+function supprimerReward(cIdx,key){ delete children[cIdx].settings.rewards[key]; autoSave(); render(); }
+
+/* Exporter enfant */
+function exporterEnfant(idx){
+  const enfant = children[idx];
+  if(!enfant){ alert("❌ Aucun enfant à exporter"); return; }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(enfant, null, 2));
+  const dl = document.createElement("a");
+  dl.setAttribute("href", dataStr);
+  dl.setAttribute("download", (enfant.settings.childName || "enfant") + ".json");
+  dl.click();
+}
+
+/* Importer enfant */
+function importerEnfant(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const enfant = JSON.parse(evt.target.result);
+        children.push(enfant);
+        currentChild = children.length - 1;
+        autoSave();
+        render();
+        alert("✅ Enfant importé avec succès !");
+      } catch(err){
+        alert("❌ Fichier invalide : " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+/* Setters */
+function setReward(cIdx,type,value){children[cIdx].settings[type]=value;autoSave();}
+function setTask(cIdx,tIdx,value){children[cIdx].tasks[tIdx].name=value;autoSave();}
+function setWeight(cIdx,tIdx,dayIdx,value){children[cIdx].tasks[tIdx].weights[dayIdx]=Number(value)||0;autoSave();}
+function setWeekReward(cIdx,key,type,value){ children[cIdx].settings.rewards[key][type]=value;autoSave(); }
+
+/* Render */
+function render(){
+  const container=document.getElementById("childrenSettings");
+  const pagination=document.getElementById("pagination");
+  container.innerHTML="";pagination.innerHTML="";
+
+  if(children.length===0){ container.innerHTML="<p class='no-task'>⚠️ Aucun enfant défini</p>"; document.getElementById("childTitle").textContent="Aucun enfant"; return; }
+
+  const child=children[currentChild];
+  document.getElementById("childTitle").textContent=child.settings.childName||"Nouvel enfant";
+
+  const card=document.createElement("div");
+  card.className="child-card";
+
+  card.innerHTML=`
+    <h3>${child.settings.childName||"Nouvel enfant"}</h3>
+
+    <div class="section">
+      <h4>Nom</h4>
+      <div class="form-row">
+        <input type="text" value="${child.settings.childName||""}" oninput="setReward(${currentChild},'childName',this.value)">
+      </div>
+    </div>
+
+    <div class="section">
+      <h4>Récompenses par défaut</h4>
+      <div class="form-row default-rewards">
+        <input type="text" value="${child.settings.rewardLow||""}" placeholder="Palier 1" oninput="setReward(${currentChild},'rewardLow',this.value)">
+        <input type="text" value="${child.settings.rewardHigh||""}" placeholder="Palier 2" oninput="setReward(${currentChild},'rewardHigh',this.value)">
+      </div>
+    </div>
+
+    <div class="section">
+      <h4>Seuils (%)</h4>
+      <div class="form-row default-thresholds">
+        <input type="number" min="0" max="100" value="${child.settings.thresholdLow ?? 30}" oninput="setReward(${currentChild},'thresholdLow',this.value)"> <span>% → Palier 1</span>
+        <input type="number" min="0" max="100" value="${child.settings.thresholdHigh ?? 50}" oninput="setReward(${currentChild},'thresholdHigh',this.value)"> <span>% → Palier 2</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h4>Récompenses par semaine</h4>
+      <div id="rewards-${currentChild}"></div>
+      <button class="btn" onclick="ajouterReward(${currentChild})">➕ Ajouter une semaine</button>
+    </div>
+
+    <div class="section">
+      <h4>Tâches</h4>
+      <div id="tasks-${currentChild}"></div>
+      <div class="form-row">
+        <button class="btn" onclick="ajouterTache(${currentChild})">➕ Ajouter une tâche</button>
+        <button class="btn btn-danger" onclick="supprimerEnfant(${currentChild})">🗑 Supprimer cet enfant</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(card);
+
+  /* Récompenses hebdo */
+  const rewardsDiv=card.querySelector("#rewards-"+currentChild);
+  const rewards=child.settings.rewards||{};
+  if(Object.keys(rewards).length===0){ rewardsDiv.innerHTML="<p class='no-task'>ℹ️ Aucune récompense hebdomadaire définie</p>"; }
+  else{
+    for(const key in rewards){
+      const r=rewards[key];
+      rewardsDiv.innerHTML+=`
+        <div class="reward-week">
+          <input type="text" value="${key}" disabled>
+          <input type="text" value="${r.low||""}" placeholder="Palier 1" oninput="setWeekReward(${currentChild},'${key}','low',this.value)">
+          <input type="text" value="${r.high||""}" placeholder="Palier 2" oninput="setWeekReward(${currentChild},'${key}','high',this.value)">
+          <button class="btn-delete" onclick="supprimerReward(${currentChild},'${key}')">🗑</button>
+        </div>`;
+    }
+  }
+
+  /* Tâches */
+  const tasksDiv=card.querySelector("#tasks-"+currentChild);
+  if(!child.tasks||child.tasks.length===0){ tasksDiv.innerHTML="<p class='no-task'>⚠️ Aucune tâche encore définie</p>"; }
+  else{
+    child.tasks.forEach((t,tIdx)=>{
+      tasksDiv.innerHTML+=`
+        <div class="task-block">
+          <div class="form-row task-row">
+            <input type="text" value="${t.name}" oninput="setTask(${currentChild},${tIdx},this.value)">
+            <button class="btn btn-move" onclick="moveTask(${currentChild},${tIdx},-1)">⬆️</button>
+            <button class="btn btn-move" onclick="moveTask(${currentChild},${tIdx},1)">⬇️</button>
+            <button class="btn btn-delete" onclick="supprimerTache(${currentChild},${tIdx})">🗑</button>
+          </div>
+          <div class="weights-grid">
+            ${["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].map((d,dayIdx)=>`<label>${d}<input type="number" min="0" value="${t.weights?.[dayIdx]??0}" oninput="setWeight(${currentChild},${tIdx},${dayIdx},this.value)"></label>`).join("")}
+          </div>
+        </div>`;
+    });
+  }
+
+  /* Pagination */
+  children.forEach((c,idx)=>{
+    const item=document.createElement("div");
+    item.className="page-item"+(idx===currentChild?" active":"");
+    item.onclick=()=>goToChild(idx);
+    item.innerHTML=`<div class="dot"></div><span>${c.settings.childName||`Enfant ${idx+1}`}</span>`;
+    pagination.appendChild(item);
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>

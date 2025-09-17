@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Home Kid Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css?v=4.4.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .calendar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap;}
+    #btnPrev,#btnNext{width:50px;height:32px;font-size:1rem;padding:0;}
+    #calendar{flex:0 0 200px;text-align:center;font-weight:bold;}
+    #lockMessage{text-align:center;color:#b00;font-weight:bold;margin:0.3rem 0;white-space:nowrap;}
+    .btn-row{display:flex;gap:.4rem;justify-content:center;margin:.3rem 0 .6rem 0;flex-wrap:wrap;}
+    /* Puzzle Vue enfant */
+    .puzzle-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: auto;
+      border: 2px solid #666;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .puzzle-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .puzzle-mask {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* ajusté dynamiquement au run */
+      grid-auto-rows: 1fr;
+    }
+    /* Pièces fun et colorées */
+    .puzzle-piece {
+      border-radius: 6px;
+      margin: 1px;
+      transition: opacity 0.6s ease, transform 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .puzzle-piece:nth-child(3n) {
+      background: linear-gradient(135deg, #36d1dc, #5b86e5); /* bleu */
+    }
+    .puzzle-piece:nth-child(3n+1) {
+      background: linear-gradient(135deg, #56ab2f, #a8e063); /* vert */
+    }
+    .puzzle-piece:nth-child(3n+2) {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b); /* rose/rouge */
+    }
+    .puzzle-piece.revealed {
+      opacity: 0;
+      transform: scale(0.7) rotate(10deg);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-left">
+    <button class="menu-toggle" onclick="toggleMenu()">🍔</button>
+    <nav id="navMenu">
+      <a href="index.html">🏠</a>
+      <a href="settings.html">⚙️</a>
+      <a href="about.html">ℹ️</a>
+      <a href="install.html">📲</a>
+    </nav>
+  </div>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙/☀️</button>
+</header>
+
+<div class="calendar">
+  <button id="btnPrev" class="btn btn-small" onclick="changerSemaine(-1)">◀</button>
+  <div id="calendar"></div>
+  <button id="btnNext" class="btn btn-small" onclick="changerSemaine(1)">▶</button>
+</div>
+<p id="lockMessage"></p>
+
+<main>
+  <div class="child-nav" style="flex-direction:column;gap:.4rem;">
+    <button class="btn btn-small" onclick="retourAujourdHui()">Aujourd’hui</button>
+    <div style="display:flex;align-items:center;justify-content:center;gap:.6rem;">
+      <button class="btn btn-small" onclick="prevChild()">⬅️</button>
+      <h2 id="childTitle">Tâches de ...</h2>
+      <button class="btn btn-small" onclick="nextChild()">➡️</button>
+    </div>
+  </div>
+
+  <p id="modeLabel" style="text-align:center;font-weight:bold;margin:0.5rem 0;"></p>
+
+  <div id="weekRewards" class="week-rewards"></div>
+  
+  <div class="btn-row">
+    <button class="btn btn-small" onclick="toggleRecompenses()">🎁 Afficher</button>
+    <button id="toggleModeBtn" class="btn btn-small" onclick="toggleVueSaisie()">📅 Vue rapide</button>
+  </div>
+
+  <div id="jourBadge" style="text-align:center; font-weight:bold; margin:0.5rem 0; display:none;"></div>
+
+  <!-- Vue enfant puzzle -->
+  <div id="vueEnfant" style="display:none;text-align:center;margin:1rem 0;">
+    <h3 id="vueEnfantTitle"></h3>
+    <div class="puzzle-container">
+      <img src="img/puzzle.png" class="puzzle-image">
+      <div class="puzzle-mask" id="puzzleMask"></div>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table id="tasksTable">
+      <thead id="tasksHeader"></thead>
+      <tbody id="tasks"></tbody>
+    </table>
+  </div>
+
+  <div class="btn-group" style="text-align:center;display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;">
+    <button class="btn" onclick="toggleHistorique()">📖 Historique</button>
+    <button class="btn btn-warning" onclick="resetSemaine()">♻️ Réinitialiser la semaine</button>
+    <button class="btn btn-edit" onclick="modifierRecompenses()">✏️ Modifier</button>
+  </div>
+
+  <div id="resultat" class="result"></div>
+
+  <!-- v4.3.1 : Bonus/Malus -->
+  <div class="bonus-malus">
+    <label>Bonus : <input type="number" id="bonusInput" value="0" step="1"></label>
+    <label>Malus : <input type="number" id="malusInput" value="0" step="1"></label>
+  </div>
+
+  <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+
+  <div id="historique" style="display:none;">
+    <h2>📖 Historique</h2>
+    <div class="tabs" style="text-align:center;margin-bottom:.5rem;">
+      <button id="tabSemaine" class="btn btn-small" onclick="changerVue('semaine')">Vue semaine</button>
+      <button id="tabGlobale" class="btn btn-small" onclick="changerVue('globale')">Vue globale</button>
+      <button class="btn btn-danger btn-small" onclick="resetHistorique()">🔄 Réinitialiser l’historique</button>
+    </div>
+    <table>
+      <thead><tr><th>Semaine</th><th>% Réalisé</th><th>Récompense</th><th>Palier</th></tr></thead>
+      <tbody id="historiqueBody"></tbody>
+    </table>
+    <div id="chartContainer" style="display:none;height:280px;margin-top:16px;">
+      <canvas id="historyChart"></canvas>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:1rem;">
+    <button id="installBtn" class="btn" style="display:none;">📲 Installer l’app</button>
+  </div>
+</main>
+
+<script>
+/* 🌙 Dark mode */
+if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add("dark");
+if(localStorage.getItem("darkMode")==="true")document.body.classList.add("dark");
+function toggleDarkMode(){document.body.classList.toggle("dark");localStorage.setItem("darkMode",document.body.classList.contains("dark"));}
+
+/* Menu */
+function toggleMenu(){document.getElementById("navMenu").classList.toggle("show");}
+
+/* Enfants */
+let children=JSON.parse(localStorage.getItem("children"))||[];
+let currentChild=0;
+function getChild(){return children[currentChild];}
+function saveChildren(){localStorage.setItem("children",JSON.stringify(children));}
+function bootstrapIfEmpty(){
+  if(!Array.isArray(children)||children.length===0){
+    children=[{settings:{childName:"Mon enfant",rewardLow:"",rewardHigh:"",thresholdLow:30,thresholdHigh:50,rewards:{}},tasks:[],notes:{},history:[]}];
+    saveChildren();
+  }
+}
+bootstrapIfEmpty();
+function prevChild(){if(currentChild>0){currentChild--;majUI();}}
+function nextChild(){if(currentChild<children.length-1){currentChild++;majUI();}}
+
+/* Dates */
+function formatDateFR(d){return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});}
+function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day==0?-6:1);return new Date(d.setDate(diff));}
+function getSunday(m){const s=new Date(m);s.setDate(m.getDate()+6);return s;}
+function getWeekNumber(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dayNum=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-yearStart)/86400000)+1)/7);}
+let currentDate=new Date();
+function getWeekData(){const m=getMonday(currentDate),s=getSunday(m);return{num:getWeekNumber(currentDate),annee:m.getFullYear(),lundi:formatDateFR(m),dim:formatDateFR(s)};}
+function getWeekKey(){const w=getWeekData();return`${w.num}-${w.annee}`;}
+function getCurrentWeekKey(){const today=new Date();return`${getWeekNumber(today)}-${today.getFullYear()}`;}
+
+/* Calendrier */
+function afficherCalendrier(){
+  const w=getWeekData();
+  document.getElementById("calendar").innerHTML=`Semaine ${w.num} - ${w.annee}<br>Du ${w.lundi} au ${w.dim}`;
+  const lockMsg=document.getElementById("lockMessage");
+  if(getWeekKey()!==getCurrentWeekKey()){
+    lockMsg.textContent="🔒 Semaine verrouillée (lecture seule)";
+  } else {
+    lockMsg.textContent="";
+  }
+}
+function changerSemaine(delta){currentDate.setDate(currentDate.getDate()+delta*7);majUI();}
+function retourAujourdHui(){currentDate=new Date();majUI();}
+
+/* Vue saisie */
+let modeSaisie = "jour";
+function toggleVueSaisie(){
+  if(modeSaisie === "jour"){
+    modeSaisie = "semaine";
+    document.getElementById("toggleModeBtn").textContent = "📅 Vue détail";
+  } else if(modeSaisie === "semaine"){
+    modeSaisie = "detail";
+    document.getElementById("toggleModeBtn").textContent = "📅 Vue jour";
+  } else if(modeSaisie === "detail"){
+    modeSaisie = "enfant";
+    document.getElementById("toggleModeBtn").textContent = "📅 Vue enfant";
+  } else {
+    modeSaisie = "jour";
+    document.getElementById("toggleModeBtn").textContent = "📅 Vue rapide";
+  }
+  majTableau();
+  calculer();
+}
+
+/* Récompenses */
+function afficherRecompensesSemaine(){
+  const key=getWeekKey();const c=getChild();const weekRewards=c.settings.rewards?.[key]||{};
+  const low=(weekRewards.low&&weekRewards.low.trim()!=="")?weekRewards.low:(c.settings.rewardLow||"❌ Aucune");
+  const high=(weekRewards.high&&weekRewards.high.trim()!=="")?weekRewards.high:(c.settings.rewardHigh||"❌ Aucune");
+  document.getElementById("weekRewards").innerHTML=`🎁 <b>Récompenses semaine ${key}</b><br>Palier 1 (≥ ${c.settings.thresholdLow||30}%) : <span>${low}</span><br>Palier 2 (≥ ${c.settings.thresholdHigh||50}%) : <span>${high}</span>`;
+}
+function modifierRecompenses(){window.location.href=`settings.html#child-${currentChild}`;}
+function toggleRecompenses(){
+  const el=document.getElementById("weekRewards");
+  const newState = (el.style.display==="none")?"block":"none";
+  el.style.display = newState;
+  localStorage.setItem('showRewards', newState === 'block' ? '1' : '0');
+}
+
+/* Tableau */
+const tasksHeader=document.getElementById("tasksHeader");
+const tasksBody=document.getElementById("tasks");
+const days=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+
+function majTableau(){
+  tasksHeader.innerHTML="";
+  tasksBody.innerHTML="";
+  document.getElementById("vueEnfant").style.display = "none";
+
+  if(modeSaisie === "jour"){
+    let headerRow = `<tr><th>Tâche</th>`;
+    days.forEach(d=>headerRow+=`<th>${d}</th>`);
+    headerRow+=`</tr>`;
+    tasksHeader.innerHTML = headerRow;
+
+  } else if(modeSaisie === "semaine"){
+    tasksHeader.innerHTML = `<tr><th>Tâche</th><th>Semaine</th></tr>`;
+
+  } else if(modeSaisie === "detail"){
+    const today = new Date();
+    const jourIndex = today.getDay();
+    const jours = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+    const jourNom = jours[jourIndex];
+    tasksHeader.innerHTML = `<tr><th>Tâche</th><th>${jourNom}</th></tr>`;
+
+  } else if(modeSaisie === "enfant"){
+    document.getElementById("vueEnfant").style.display = "block";
+    document.getElementById("vueEnfantTitle").textContent =
+      getChild().settings.childName || "Mon enfant";
+
+    // Image spécifique par enfant = "Nom_Enfant.png" avec fallback
+    const childName = (getChild().settings.childName || "MonEnfant").trim();
+    const safeName = childName.replace(/\s+/g,"_");
+    const img = document.querySelector("#vueEnfant .puzzle-image");
+    img.src = `img/${safeName}.png`;
+    img.onerror = () => { img.src = "img/puzzle.png"; };
+
+    majPuzzle();
+    document.getElementById("modeLabel").textContent = "Vue enfant";
+
+    // Pas de tableau dans cette vue
+    // Badge masqué
+    const badgeZone = document.getElementById("jourBadge");
+    if(badgeZone) badgeZone.style.display = "none";
+    return;
+  }
+
+  // Affichage des lignes de tâches (pour les 3 autres vues)
+  const notes = getChild().notes?.[getWeekKey()] || {};
+  const disable = (getWeekKey() !== getCurrentWeekKey()) ? "disabled" : "";
+
+  if(!getChild().tasks || getChild().tasks.length===0){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="2">⚠️ Aucune tâche définie</td>`;
+    tasksBody.appendChild(tr);
+  } else {
+    getChild().tasks.forEach((t,i)=>{
+      const tr=document.createElement("tr");
+      let row = `<td>${t.name}</td>`;
+
+      if(modeSaisie === "jour"){
+        days.forEach((d,dayIdx)=>{
+          const checked = notes[i]?.[dayIdx] ? "checked" : "";
+          row+=`<td><input type="checkbox" data-task="${i}" data-day="${dayIdx}" ${checked} ${disable}></td>`;
+        });
+
+      } else if(modeSaisie === "semaine"){
+        const checked = notes[i]?.some(v=>v===1) ? "checked" : "";
+        row+=`<td><input type="checkbox" data-task="${i}" data-week="1" ${checked} ${disable}></td>`;
+
+      } else if(modeSaisie === "detail"){
+        const today = new Date();
+        const jourIndex = today.getDay();
+        const dayIdx = (jourIndex===0)?6:(jourIndex-1);
+        const checked = notes[i]?.[dayIdx] ? "checked" : "";
+        row+=`<td><input type="checkbox" data-task="${i}" data-day="${dayIdx}" ${checked} ${disable}></td>`;
+      }
+
+      tr.innerHTML = row;
+      tasksBody.appendChild(tr);
+    });
+  }
+
+  // Sauvegarde automatique au clic
+  document.querySelectorAll("#tasks input[type=checkbox]").forEach(cb=>{
+    cb.addEventListener("change",()=>{sauverNotes();calculer();});
+  });
+
+  // Label et badge
+  const modeLabel = document.getElementById("modeLabel");
+  const badgeZone = document.getElementById("jourBadge");
+  if(modeSaisie === "jour"){
+    modeLabel.textContent = "Vue semaine rapide";
+    if(badgeZone) badgeZone.style.display = "none";
+  } else if(modeSaisie === "semaine"){
+    modeLabel.textContent = "Vue semaine détail";
+    if(badgeZone) badgeZone.style.display = "none";
+  } else if(modeSaisie === "detail"){
+    modeLabel.textContent = "Vue jour";
+    if(badgeZone){
+      const today = new Date();
+      const joursLong = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+      badgeZone.textContent = "📌 Jour en cours : " + joursLong[today.getDay()];
+      badgeZone.style.display = "block";
+    }
+  }
+}
+
+/* Sauvegarde des notes pour les 3 vues */
+function sauverNotes(){
+  const key = getWeekKey();
+  if(!getChild().notes) getChild().notes = {};
+
+  if(modeSaisie === "jour"){
+    // Vue rapide → sauvegarde par jour complet
+    getChild().notes[key] = getChild().tasks.map((t,i)=>
+      days.map((d,dayIdx)=>
+        document.querySelector(`input[data-task='${i}'][data-day='${dayIdx}']`)?.checked?1:0
+      )
+    );
+
+  } else if(modeSaisie === "semaine"){
+    // Vue détail → une case pour la semaine entière
+    getChild().notes[key] = getChild().tasks.map((t,i)=>
+      days.map(()=>document.querySelector(`input[data-task='${i}'][data-week='1']`)?.checked?1:0)
+    );
+
+  } else if(modeSaisie === "detail"){
+    // Vue jour → met à jour uniquement le jour en cours
+    const today = new Date();
+    const jourIndex = today.getDay();
+    const dayIdx = (jourIndex===0)?6:(jourIndex-1);
+
+    if(!getChild().notes[key]){
+      getChild().notes[key] = getChild().tasks.map(() => [0,0,0,0,0,0,0]);
+    }
+
+    getChild().tasks.forEach((t,i)=>{
+      const checked = document.querySelector(`input[data-task='${i}'][data-day='${dayIdx}']`)?.checked?1:0;
+      getChild().notes[key][i][dayIdx] = checked;
+    });
+  }
+
+  saveChildren();
+}
+
+function majPuzzle(){
+  const c = getChild();
+  const key = getWeekKey();
+
+  // ⚡ Normaliser la structure notes si absente
+  if(!c.notes) c.notes = {};
+  if(!c.notes[key]){
+    c.notes[key] = (c.tasks || []).map(() => [0,0,0,0,0,0,0]);
+  }
+
+  const notes = c.notes[key];
+  let total=0, done=0;
+
+  c.tasks.forEach((t,i)=>{
+    (t.weights||[]).forEach((w=0,d)=>{
+      total += Number(w)||0;
+      if(notes[i]?.[d]) done += Number(w)||0;
+    });
+  });
+
+  const mask = document.getElementById("puzzleMask");
+  mask.innerHTML = "";
+  if(total === 0){
+    mask.innerHTML = "<p style='color:#666;'>⚠️ Pas de tâches définies</p>";
+    return;
+  }
+
+  const cols = Math.ceil(Math.sqrt(total));
+  mask.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+
+  for(let i=0;i<total;i++){
+    const piece=document.createElement("div");
+    piece.className="puzzle-piece"+(i<done?" revealed":"");
+    mask.appendChild(piece);
+  }
+}
+
+/* v4.3.1 : Bonus/Malus persistés (clé locale par enfant + semaine) */
+function bmKey(){ return `bm:${currentChild}:${getWeekKey()}`; }
+function loadBonusMalus(){
+  const raw = localStorage.getItem(bmKey());
+  let b=0,m=0;
+  if(raw){ try{ const o=JSON.parse(raw); b=Number(o.bonus)||0; m=Number(o.malus)||0; }catch{} }
+  document.getElementById("bonusInput").value = b;
+  document.getElementById("malusInput").value = m;
+  return {bonus:b, malus:m};
+}
+function getBonusMalus(){
+  const bonus=parseInt(document.getElementById("bonusInput")?.value)||0;
+  const malus=parseInt(document.getElementById("malusInput")?.value)||0;
+  return {bonus, malus};
+}
+function saveBonusMalus(){
+  const bm = getBonusMalus();
+  localStorage.setItem(bmKey(), JSON.stringify(bm));
+}
+
+/* Calcul + historique */
+function calculer(){
+  const notes=getChild().notes?.[getWeekKey()]||[];
+  let total=0,done=0;
+  getChild().tasks.forEach((t,i)=>{
+    (t.weights||[]).forEach((w=0,d)=>{
+      total+=Number(w)||0;
+      if(notes[i]?.[d]) done+=Number(w)||0;
+    });
+  });
+
+  // Bonus/Malus
+  const bm=getBonusMalus();
+  done += bm.bonus;
+  done -= bm.malus;
+  if(done<0) done=0;
+
+  const pct=total?(done/total*100):0;
+
+  const c=getChild();
+  const weekRewards=c.settings.rewards?.[getWeekKey()]||{};
+  const low=(weekRewards.low&&weekRewards.low.trim()!=="")?weekRewards.low:(c.settings.rewardLow||"");
+  const high=(weekRewards.high&&weekRewards.high.trim()!=="")?weekRewards.high:(c.settings.rewardHigh||"");
+
+  // Seuils
+  let tLow = parseInt(c.settings.thresholdLow);
+  let tHigh = parseInt(c.settings.thresholdHigh);
+  if (isNaN(tLow)) tLow = 30;
+  if (isNaN(tHigh)) tHigh = 50;
+  tLow = Math.min(Math.max(tLow, 0), 100);
+  tHigh = Math.min(Math.max(tHigh, 0), 100);
+  if (tHigh < tLow) tHigh = tLow;
+
+  let reward="", palier="";
+  if(pct >= tLow && pct < tHigh && low){
+    reward=`🎁 ${low}`; palier="Palier 1";
+  } else if(pct >= tHigh && high){
+    reward=`🏆 ${high}`; palier="Palier 2";
+  } else {
+    reward="❌ Aucune récompense"; palier="-";
+  }
+
+  document.getElementById("resultat").innerHTML=
+    `✅ ${done}/${total} pts (${pct.toFixed(1)}%)<br>${reward}`;
+
+  // Barre de progression bornée
+  const pctForBar = Math.max(0, Math.min(100, pct));
+  document.getElementById("progressBar").style.width=pctForBar+"%";
+
+  // Historique
+  const week=getWeekKey();
+  c.history=c.history||[];
+  const existing=c.history.find(h=>h.week===week);
+  if(existing){
+    existing.pct=pct.toFixed(1);
+    existing.reward=reward;
+    existing.palier=palier;
+  } else {
+    c.history.push({week:week,pct:pct.toFixed(1),reward:reward,palier:palier});
+  }
+  saveChildren();
+
+  // Mise à jour visuelle du puzzle si on est en vue enfant
+  if(modeSaisie==="enfant"){ majPuzzle(); }
+}
+
+/* Historique */
+let historyChart = null;
+function toggleHistorique(){
+  const el=document.getElementById("historique");
+  const isNowVisible = el.style.display!=="block";
+  el.style.display = isNowVisible ? "block" : "none";
+  if(isNowVisible){ changerVue('semaine'); }
+}
+function changerVue(mode){
+  document.getElementById("tabSemaine").classList.remove("active");
+  document.getElementById("tabGlobale").classList.remove("active");
+  if(mode==="semaine"){document.getElementById("tabSemaine").classList.add("active");afficherHistoriqueSemaine();}
+  else{document.getElementById("tabGlobale").classList.add("active");afficherHistoriqueGlobale();}
+}
+function afficherHistoriqueSemaine(){
+  const histBody=document.getElementById("historiqueBody");histBody.innerHTML="";
+  (getChild().history||[]).forEach(h=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${h.week}</td><td>${h.pct}%</td><td>${h.reward}</td><td>${h.palier}</td>`;
+    histBody.appendChild(tr);
+  });
+  document.getElementById("chartContainer").style.display="none";
+  if(historyChart){ historyChart.destroy(); historyChart = null; }
+}
+function afficherHistoriqueGlobale(){
+  const histBody=document.getElementById("historiqueBody");histBody.innerHTML="";
+  const hist = (getChild().history||[]);
+  if(hist.length===0){
+    document.getElementById("chartContainer").style.display="none";
+    if(historyChart){ historyChart.destroy(); historyChart = null; }
+    return;
+  }
+  const labels = hist.map(h=>h.week);
+  const data = hist.map(h=>Number(h.pct||0));
+  document.getElementById("chartContainer").style.display="block";
+  const ctx = document.getElementById("historyChart").getContext("2d");
+  if(historyChart){ historyChart.destroy(); }
+  historyChart = new Chart(ctx,{
+    type:"line",
+    data:{ labels, datasets:[{ label:"% réussi", data, borderColor:"blue", fill:false, tension:0.25 }] },
+    options:{ scales:{ y:{ beginAtZero:true, max:100 } }, plugins:{ legend:{display:true} } }
+  });
+}
+function resetHistorique(){
+  if(confirm("⚠️ Supprimer l’historique ?")){
+    getChild().history=[];saveChildren();afficherHistoriqueSemaine();
+  }
+}
+
+/* Réinit semaine (protégée si pas la semaine courante) */
+function resetSemaine(){
+  if (getWeekKey() !== getCurrentWeekKey()) {
+    alert("🔒 Semaine verrouillée : impossible de réinitialiser une semaine passée ou future.");
+    return;
+  }
+  if (!confirm("♻️ Réinitialiser toutes les cases de la semaine en cours ?")) return;
+
+  const c = getChild();
+  const key = getWeekKey();
+  if (!c.notes) c.notes = {};
+  const daysEmpty = [0,0,0,0,0,0,0];
+  c.notes[key] = (c.tasks || []).map(() => daysEmpty.slice());
+
+  saveChildren();
+  majTableau();
+  calculer();
+}
+
+/* UI */
+function majUI(){
+  document.getElementById("childTitle").textContent=getChild().settings.childName||"Mon enfant";
+  afficherCalendrier();afficherRecompensesSemaine();majTableau();
+
+  // Restitue l’état d’affichage des récompenses
+  const showRewards = localStorage.getItem('showRewards') !== '0';
+  document.getElementById("weekRewards").style.display = showRewards ? 'block' : 'none';
+
+  // Bonus/Malus: charger puis binder
+  loadBonusMalus();
+  const b=document.getElementById("bonusInput");
+  const m=document.getElementById("malusInput");
+  b.oninput = ()=>{ saveBonusMalus(); calculer(); };
+  m.oninput = ()=>{ saveBonusMalus(); calculer(); };
+
+  calculer();
+}
+
+/* Init */
+majUI();
+
+/* PWA : enregistrement service worker (v4.4.0) */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("✅ Service Worker enregistré (v4.4.0)"))
+    .catch(err => console.error("❌ SW erreur:", err));
+}
+
+/* Installation PWA */
+let deferredPrompt;const installBtn=document.getElementById("installBtn");
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;installBtn.style.display="inline-block";});
+installBtn?.addEventListener("click",async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;installBtn.style.display="none";});
+window.addEventListener("appinstalled",()=>{installBtn.style.display="none";});
+</script>
+
+</body>
+</html>
