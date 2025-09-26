@@ -1,5 +1,3 @@
-<!-- Daily Home Kid Challenge — v4.6.18 — build 2025-09-26 -->
-<!-- Daily Home Kid Challenge — v4.6.17 — build 2025-09-26 -->
 <!DOCTYPE html>
 
 <html lang="fr">
@@ -121,10 +119,10 @@ function seededShuffle(n, seedStr){
 <main>
 <p id="modeLabel" style="text-align:center;font-weight:bold;margin:0.5rem 0;"></p>
 <div class="btn-row">
-<button aria-label="Vue semaine" class="btn btn-small" data-mode="semaine" onclick="setVue('semaine')" title="Vue semaine"><svg aria-hidden="true" class="icon" fill="none" viewbox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="4"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg></button>
-<button aria-label="Vue globale" class="btn btn-small" data-mode="globale" onclick="setVue('globale')" title="Vue globale"><svg aria-hidden="true" class="icon fill" viewbox="0 0 24 24"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg></button>
-<button aria-label="Vue jour" class="btn btn-small" data-mode="jour" onclick="setVue('jour')" title="Vue jour"><svg aria-hidden="true" class="icon" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4"></circle><line x1="12" x2="12" y1="2" y2="5"></line><line x1="12" x2="12" y1="19" y2="22"></line><line x1="2" x2="5" y1="12" y2="12"></line><line x1="19" x2="22" y1="12" y2="12"></line><line x1="4.2" x2="6.3" y1="4.2" y2="6.3"></line><line x1="17.7" x2="19.8" y1="17.7" y2="19.8"></line><line x1="17.7" x2="19.8" y1="6.3" y2="4.2"></line><line x1="4.2" x2="6.3" y1="19.8" y2="17.7"></line></svg></button>
-<button aria-label="Vue résultat" class="btn btn-small" data-mode="avancee" onclick="setVue('avancee')" title="Vue résultat"><svg aria-hidden="true" class="icon" fill="none" viewbox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"></polyline><line x1="3" x2="21" y1="21" y2="21"></line><line x1="3" x2="3" y1="21" y2="17"></line></svg></button>
+<button aria-label="Semaine" class="btn btn-small" data-mode="semaine" onclick="setVue('semaine')" title="Semaine"><svg aria-hidden="true" class="icon" fill="none" viewbox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="4"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg></button>
+<button aria-label="Globale" class="btn btn-small" data-mode="globale" onclick="setVue('globale')" title="Globale"><svg aria-hidden="true" class="icon fill" viewbox="0 0 24 24"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg></button>
+<button aria-label="Jour" class="btn btn-small" data-mode="jour" onclick="setVue('jour')" title="Jour"><svg aria-hidden="true" class="icon" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4"></circle><line x1="12" x2="12" y1="2" y2="5"></line><line x1="12" x2="12" y1="19" y2="22"></line><line x1="2" x2="5" y1="12" y2="12"></line><line x1="19" x2="22" y1="12" y2="12"></line><line x1="4.2" x2="6.3" y1="4.2" y2="6.3"></line><line x1="17.7" x2="19.8" y1="17.7" y2="19.8"></line><line x1="17.7" x2="19.8" y1="6.3" y2="4.2"></line><line x1="4.2" x2="6.3" y1="19.8" y2="17.7"></line></svg></button>
+<button aria-label="Résultat" class="btn btn-small" data-mode="avancee" onclick="setVue('avancee')" title="Résultat"><svg aria-hidden="true" class="icon" fill="none" viewbox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"></polyline><line x1="3" x2="21" y1="21" y2="21"></line><line x1="3" x2="3" y1="21" y2="17"></line></svg></button>
 </div>
 <div class="child-nav" style="flex-direction:column;gap:.1rem;">
 <div class="week-rewards" id="weekRewards"></div>
@@ -247,7 +245,7 @@ function setVue(mode) {
     if (btn) { btn.classList.add("active"); }
   } catch(e) { /* ignore */ }
   // Mode label
-  const labels = {semaine:"Vue semaine", globale:"Vue globale", jour:"Vue jour", avancee:"Vue résultat"};
+  const labels = {semaine:"Semaine", globale:"Globale", jour:"Jour", avancee:"Résultat"};
   const ml = document.getElementById("modeLabel");
   if (ml) ml.textContent = labels[mode] || "";
 }
@@ -307,7 +305,7 @@ function majTableau(){
     img.onerror = () => { img.src = "img/puzzle.png"; };
 
     majPuzzle();
-    document.getElementById("modeLabel").textContent = "Vue résultat";
+    document.getElementById("modeLabel").textContent = "Résultat";
 
     // Pas de tableau dans cette vue
     // Badge masqué
@@ -367,7 +365,7 @@ function majTableau(){
     modeLabel.textContent = "graphique ";
     if(badgeZone) badgeZone.style.display = "none";
   } else if(modeSaisie === "jour"){ // ancien "detail"
-    modeLabel.textContent = "Vue jour";
+    modeLabel.textContent = "Jour";
     if(badgeZone){
       const today = new Date();
       const joursLong = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -717,7 +715,7 @@ function resetSemaine(){
 function afficherCalendrier(){
   const w = getWeekData();
   const el = document.getElementById("calendar");
-  if (el) el.innerHTML = `<div class="week-info">Semaine ${w.num} ${w.annee} — ${w.lundi} → ${w.dim}</div>`;
+  if (el) el.innerHTML = `<div class="week-info">Sem ${w.num} ${w.annee} — ${w.lundi} → ${w.dim}</div>`;
 }
 
 function majUI(){
