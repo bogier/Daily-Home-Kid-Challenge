@@ -1,3 +1,4 @@
+<!-- Daily Home Kid Challenge — settings v4.6.18+3 — build 2025-09-26 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -67,6 +68,7 @@
 <div class="actions">
   <button class="success-btn" onclick="ajouterEnfant()">➕ Ajouter un enfant</button>
   <button class="warning-btn" onclick="importerEnfant()">📥 Importer un enfant</button>
+  <button class="warning-btn" onclick="importExample()">📂 Importer l’exemple</button>
   <button class="success-btn" onclick="sauver()">💾 Enregistrer</button>
   <button class="danger-btn" onclick="resetAll()">🔄 Réinitialiser enfants</button>
   <button class="warning-btn" onclick="exporterEnfant(currentChild)">📤 Exporter cet enfant</button>
@@ -156,6 +158,31 @@ function render(){
   children.forEach((c,idx)=>{const item=document.createElement("div");item.className="page-item"+(idx===currentChild?" active":"");item.onclick=()=>goToChild(idx);item.innerHTML=`<div class="dot"></div><span>${c.settings.childName||`Enfant ${idx+1}`}</span>`;pagination.appendChild(item);});
 }
 render();
+
+async function importExample() {
+  try {
+    const response = await fetch("exemple.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("Fichier exemple introuvable");
+
+    const enfant = await response.json();
+
+    // Récupère la liste actuelle
+    let children = JSON.parse(localStorage.getItem("children")) || [];
+
+    // Ajoute l'enfant d'exemple à la liste
+    children.push(enfant);
+
+    // Sauvegarde et recharge
+    localStorage.setItem("children", JSON.stringify(children));
+    alert("✅ Exemple importé avec succès !");
+    location.reload();
+
+  } catch (err) {
+    alert("⚠️ Erreur lors de l’import de l’exemple : " + err.message);
+  }
+}
+
+
 </script>
 </body>
 </html>
