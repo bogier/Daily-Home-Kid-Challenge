@@ -65,6 +65,9 @@
       opacity: 0;
       transform: scale(0.7) rotate(10deg);
     }
+	.week-info { font-weight: normal; }   /* non-courant = pas en gras */
+    .week-current { font-weight: 700; }   /* semaine courante = en gras */
+
   </style>
 <script>
 // --- Seeded RNG helpers (stable randomization per enfant/semaine) ---
@@ -715,8 +718,22 @@ function resetSemaine(){
 function afficherCalendrier(){
   const w = getWeekData();
   const el = document.getElementById("calendar");
-  if (el) el.innerHTML = `<div class="week-info">Sem ${w.num} ${w.annee} — ${w.lundi} → ${w.dim}</div>`;
+  if (el) {
+    const isCurrent = (getWeekKey() === getCurrentWeekKey());
+    const cls = isCurrent ? "week-info week-current" : "week-info";
+    el.innerHTML = `<div class="${cls}">Sem ${w.num} ${w.annee} — ${w.lundi} → ${w.dim}</div>`;
+  }
+
+  // (optionnel mais utile) garder le message de verrouillage
+  const lockMsg = document.getElementById("lockMessage");
+  if (lockMsg) {
+    lockMsg.textContent = (getWeekKey() !== getCurrentWeekKey())
+      ? "🔒 Semaine verrouillée (lecture seule)"
+      : "";
+  }
 }
+
+
 
 function majUI(){
   document.getElementById("childTitle").textContent=getChild().settings.childName||"Mon enfant";
