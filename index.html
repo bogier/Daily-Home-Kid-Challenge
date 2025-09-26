@@ -1,3 +1,4 @@
+<!-- Daily Home Kid Challenge — v4.6.17 — build 2025-09-26 -->
 <!DOCTYPE html>
 
 <html lang="fr">
@@ -413,6 +414,7 @@ function sauverNotes(){
   saveChildren();
 }
 
+
 function majPuzzle(){
 
   const c = getChild();
@@ -452,21 +454,32 @@ function majPuzzle(){
     return;
   }
 
+  // Puzzle carré complet
   const cols = Math.ceil(Math.sqrt(total));
+  const totalCells = cols * cols;
   mask.style.gridTemplateColumns = `repeat(${cols},1fr)`;
 
   // Ordre aléatoire stable par enfant + semaine
-  const childKey = (c.name || c.id || "child") + "|" + key + "|v4.6.11";
-  const order = seededShuffle(total, childKey);
+  const childKey = (c.name || c.id || "child") + "|" + key + "|v4.6.16";
+  const order = seededShuffle(totalCells, childKey);
   const revealSet = new Set(order.slice(0, done));
 
-  for(let i=0;i<total;i++){
+  // Cas spécial : toutes les tâches faites → tout révélé
+  const allDone = (done === total);
+
+  for(let i=0;i<totalCells;i++){
     const piece = document.createElement("div");
-    piece.className = "puzzle-piece" + (revealSet.has(i) ? " revealed" : "");
+    if(i < total){
+      piece.className = "puzzle-piece" + (revealSet.has(i) ? " revealed" : "");
+    } else {
+      // Cases neutres → révélées si tout est fait
+      piece.className = "puzzle-piece" + (allDone ? " revealed" : "");
+    }
     mask.appendChild(piece);
   }
 
 }
+
 
 /* v4.3.1 : Bonus/Malus persistés (clé locale par enfant + semaine) */
 function bmKey(){ return `bm:${currentChild}:${getWeekKey()}`; }
