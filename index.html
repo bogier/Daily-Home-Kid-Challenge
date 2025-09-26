@@ -1,3 +1,4 @@
+<!-- Daily Home Kid Challenge — v4.6.18 — build 2025-09-26 -->
 <!-- Daily Home Kid Challenge — v4.6.17 — build 2025-09-26 -->
 <!DOCTYPE html>
 
@@ -415,6 +416,7 @@ function sauverNotes(){
 }
 
 
+
 function majPuzzle(){
 
   const c = getChild();
@@ -469,16 +471,22 @@ function majPuzzle(){
 
   for(let i=0;i<totalCells;i++){
     const piece = document.createElement("div");
-    if(i < total){
-      piece.className = "puzzle-piece" + (revealSet.has(i) ? " revealed" : "");
+
+    if(allDone){
+      piece.className = "puzzle-piece revealed";
     } else {
-      // Cases neutres → révélées si tout est fait
-      piece.className = "puzzle-piece" + (allDone ? " revealed" : "");
+      if(i < total){
+        piece.className = "puzzle-piece" + (revealSet.has(i) ? " revealed" : "");
+      } else {
+        piece.className = "puzzle-piece"; // neutre non révélée
+      }
     }
+
     mask.appendChild(piece);
   }
 
 }
+
 
 
 /* v4.3.1 : Bonus/Malus persistés (clé locale par enfant + semaine) */
