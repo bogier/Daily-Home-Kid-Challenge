@@ -45,8 +45,6 @@
       </div>
     </div>
 
-
-
     <!-- Tableau de tâches -->
     <div class="table-wrapper">
       <table id="tasksTable">
@@ -71,27 +69,6 @@
     </div>
 
     <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-
-    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-
-    <!-- Vue avancée : puzzle enfant -->
-    <div id="vueEnfant" style="display:none;text-align:center;margin:1rem 0;">
-      <h3 id="vueEnfantTitle"></h3>
-
-      <div style="margin:0.5rem 0;">
-        <!-- bouton pour uploader -->
-        <button id="btnUploadImage" class="btn btn-small" type="button">📷</button>
-        <!-- bouton pour supprimer -->
-        <button class="btn btn-small" id="btnDeleteImage" type="button" title="Supprimer l’image">🗑️</button>
-        <!-- champ input caché -->
-        <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
-      </div>
-
-      <div class="puzzle-container">
-        <img class="puzzle-image" src="img/puzzle.png"/>
-        <div class="puzzle-mask" id="puzzleMask"></div>
-      </div>
-    </div>
 
     <!-- Historique -->
     <div id="historique" style="display:none;">
