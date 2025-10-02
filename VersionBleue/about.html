@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>À propos - Daily Home Kid Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#4CAF50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<div id="header-container"></div>
+<main>
+  <h2>ℹ️ À propos de Daily Home Kid Challenge</h2>
+  <p>
+    <b>Daily Home Kid Challenge</b> est une application éducative ludique qui aide les enfants à suivre leurs tâches quotidiennes
+    et à recevoir des récompenses motivantes basées sur leur engagement.
+  </p>
+
+  <h3>Fonctionnalités principales</h3>
+  <ul>
+    <li>👨‍👩‍👧 Gestion <b>multi-enfants</b> avec paramètres personnalisés</li>
+    <li>📝 Tableau <b>quotidien et hebdomadaire</b> avec cases à cocher</li>
+    <li>⚖️ <b>Pondération des tâches</b> par jour</li>
+    <li>📊 Calcul automatique du <b>pourcentage de réussite</b> hebdomadaire</li>
+    <li>🎁 Récompenses personnalisées ou par défaut avec paliers configurables</li>
+    <li>📖 <b>Historique</b> avec tableau et graphique d’évolution</li>
+    <li>♻️ Réinitialisation possible (semaine, historique ou totale)</li>
+    <li>📥 Import / 📤 Export d’un enfant (JSON)</li>
+    <li>📱 <b>PWA</b> : fonctionne hors ligne, installable sur mobile et PC</li>
+    <li>🌙 Mode sombre clair / foncé</li>
+  </ul>
+
+  <h3>Règles de récompense</h3>
+  <ul>
+    <li>Moins que le seuil configuré → ❌ Aucune récompense</li>
+    <li>Entre Palier 1 et Palier 2 → 🎁 Récompense Palier 1</li>
+    <li>À partir de Palier 2 → 🏆 Récompense Palier 2</li>
+  </ul>
+
+  <h3>Nouveautés version 4.4</h3>
+  <ul>
+    <li>🔠 Saisie par jour</li>
+    <li>👁 Affichage enfant sous forme de puzzle</li>
+  </ul>
+
+  <h3>Données & confidentialité</h3>
+  <p>Toutes les données sont stockées <b>localement</b> dans ton navigateur (localStorage). Rien n’est envoyé sur un serveur externe.</p>
+
+  <h3>📘 Guide d’utilisation</h3>
+  <ul>
+    <li><b>➕ Ajouter un enfant</b> : crée un nouvel enfant avec ses paramètres.</li>
+    <li><b>💾 Enregistrer</b> : sauvegarde manuelle (en plus de l’auto-save).</li>
+    <li><b>🔄 Réinitialiser enfants</b> : supprime tous les enfants.</li>
+    <li><b>💣 Purge totale</b> : supprime toutes les données (protégée par confirmation).</li>
+  </ul>
+
+  <div style="text-align:center;margin-top:1rem;">
+    <a href="changelog.html" target="_blank" style="color:var(--primary);font-weight:bold;">📜 Voir le changelog complet</a>
+  </div>
+</main>
+
+<script>
+if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add("dark");
+if(localStorage.getItem("darkMode")==="true")document.body.classList.add("dark");
+function toggleDarkMode(){document.body.classList.toggle("dark");localStorage.setItem("darkMode",document.body.classList.contains("dark"));}
+
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  document.querySelectorAll('header a[href]').forEach(a => {
+    const target = (a.getAttribute('href') || '').split('/').pop().toLowerCase();
+    if (target === file) a.classList.add('active');
+  });
+});
+</script>
+
+<script>
+  // Charger le header externe
+  fetch("header.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("header-container").innerHTML = html;
+    });
+</script>
+
+</body>
+</html>

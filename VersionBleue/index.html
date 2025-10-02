@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <title>Daily Home Kid Challenge 2.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="stylesheet" href="style.css?v=2.5"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="puzzle-utils.js"></script>
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="app-header">
+    <button class="menu-btn" aria-label="Ouvrir le menu">&#9776;</button>
+    <h1>Daily Home Kid Challenge</h1>
+  </header>
+
+  <!-- ================= SIDEBAR ================= -->
+  <nav class="sidebar" id="sidebar">
+    <h2>Mon espace Famille</h2>
+    <div class="sidebar-grabber"></div>
+
+    <div class="sidebar-content">
+      <ul class="nav-list">
+        <!-- Accueil en tout premier -->
+        <li onclick="showView('vue-jour')">🏠 Accueil</li>
+
+        <!-- Rubriques rapides -->
+        <li class="quick" onclick="addChild()">➕ Ajouter un enfant</li>
+        <li class="quick" onclick="document.getElementById('importChildInput').click()">📥 Importer un enfant</li>
+        <li class="quick" onclick="importExample()">🧪 Importer l'exemple</li>
+        <input id="importChildInput" type="file" accept="application/json" style="display:none" onchange="handleImportChild(event)">
+
+        <!-- Liste dynamique enfants -->
+        <div id="childrenList"></div>
+
+        <!-- Actions globales -->
+        <li onclick="resetAllChildren()">♻️ Réinitialiser les enfants</li>
+        <li onclick="purgeAll()">🗑️ Purge totale</li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Overlay -->
+  <div id="overlay"></div>
+
+  <!-- ================= VUES ================= -->
+
+  <!-- Vue Jour -->
+  <main class="view active" id="vue-jour">
+    <div class="view-header">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+      <div class="calendar">
+        <button id="btnPrev">&lt;</button>
+        <div class="calendar-title">
+          <h2 id="weekTitle">1 Octobre 2025</h2>
+          <p class="current-child" id="currentChild_day">—</p>
+        </div>
+        <button id="btnNext">&gt;</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Tâche</th><th>Statut</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Vue Semaine -->
+  <main class="view" id="vue-semaine">
+    <div class="view-header">
+      <div class="tabs">
+        <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab active" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+      <div class="calendar">
+        <div class="calendar-title">
+          <h2 id="weekTitle_week">Semaine</h2>
+          <p class="current-child" id="currentChild_week">—</p>
+        </div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Tâches</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Vue Mois -->
+  <main class="view" id="vue-mois">
+    <div class="view-header">
+      <div class="tabs">
+        <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab active" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+      <div class="calendar">
+        <div class="calendar-title">
+          <h2 id="monthTitle">Mois</h2>
+          <p class="current-child" id="currentChild_month">—</p>
+        </div>
+      </div>
+    </div>
+    <div class="calendar-month"></div>
+  </main>
+
+  <!-- Vue Résultats -->
+  <main class="view result-view" id="vue-resultats">
+    <h2 id="childTitle">Résultats - Enfant</h2>
+    <div class="result-actions">
+      <button id="btnUploadImage" class="upload">📷</button>
+      <button id="btnDeleteImage" class="delete">🗑️</button>
+      <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+    </div>
+    <div class="puzzle-container">
+      <img src="img/puzzle.png" alt="Puzzle" class="puzzle-image">
+      <div class="puzzle-mask" id="puzzleMask"></div>
+    </div>
+    <div class="result" id="resultat"></div>
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+  </main>
+
+  <!-- Vue Historique -->
+  <main class="view" id="vue-historique">
+    <h2>📖 Historique</h2>
+    <table>
+      <thead><tr><th>Semaine</th><th>% Réalisé</th><th>Récompense</th><th>Palier</th></tr></thead>
+      <tbody id="historiqueBody"></tbody>
+    </table>
+    <div id="chartContainer" style="height:280px;margin-top:16px;">
+      <canvas id="historyChart"></canvas>
+    </div>
+  </main>
+
+  <!-- ================= JS ================= -->
+  <script src="index.js?v=2.5"></script>
+  <script>
+    const sidebar=document.getElementById("sidebar");
+    const overlay=document.getElementById("overlay");
+    const menuBtn=document.querySelector(".menu-btn");
+
+    function openMenu(){ sidebar.classList.add("show"); overlay.classList.add("show"); document.body.classList.add("menu-open"); }
+    function closeMenu(){ sidebar.classList.remove("show"); overlay.classList.remove("show"); document.body.classList.remove("menu-open"); }
+
+    menuBtn.addEventListener("click",()=>{ if(sidebar.classList.contains("show")) closeMenu(); else openMenu(); });
+    overlay.addEventListener("click",closeMenu);
+
+    // Accordéon enfants
+    document.addEventListener("click",(e)=>{
+      const h3=e.target.closest(".child-accordion > h3");
+      if(!h3)return;
+      h3.parentElement.classList.toggle("open");
+    });
+
+    function showView(id){ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active")); document.getElementById(id).classList.add("active"); closeMenu(); }
+    function switchTab(btn,id){ document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); showView(id); }
+    window.showView=showView; window.switchTab=switchTab;
+  </script>
+
+</body>
+</html>

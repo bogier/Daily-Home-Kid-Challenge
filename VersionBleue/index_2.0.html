@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DHKC 2.0 - Démo</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ✅ permet de cacher toutes les vues sauf active */
+    .view { display: none; }
+    .view.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="app-header">
+    <button class="menu-btn">&#9776;</button>
+    <h1>Daily Home Kid Challenge</h1>
+  </header>
+
+  <!-- ================= SIDEBAR (MENU GLOBAL) ================= -->
+  <nav class="sidebar" id="sidebar">
+    <h2>Mon espace Famille</h2>
+    <ul>
+      <li onclick="showView('vue-jour')">🏠 Accueil</li>
+      <li>👤 Vos informations</li>
+
+      <!-- Enfant (accordéon) -->
+      <div class="child-accordion" id="child1">
+        <h3>
+          <span><img src="https://via.placeholder.com/32" class="avatar"> Bertrand</span>
+          <span>▼</span>
+        </h3>
+        <ul class="options">
+          <li>📋 Gestion des tâches</li>
+          <li>🖼️ Nom & avatar</li>
+          <li>🎁 Gestion récompenses</li>
+          <li>📤 Exporter</li>
+          <li>🗑️ Supprimer</li>
+          <li onclick="showView('vue-jour')">📆 Suivi des tâches</li>
+          <li onclick="showView('vue-resultats')">🧩 Résultats</li>
+        </ul>
+      </div>
+    </ul>
+  </nav>
+
+  <!-- ================= VUE JOUR ================= -->
+  <main class="view active" id="vue-jour">
+    <div class="view-header">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+      <div class="calendar">
+        <button id="btnPrev">&lt;</button>
+        <h2>1 Octobre 2025</h2>
+        <button id="btnNext">&gt;</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Tâche</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Brosser les dents</td><td>✅</td></tr>
+          <tr><td>Devoirs faits</td><td>❌</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ================= VUE SEMAINE ================= -->
+  <main class="view" id="vue-semaine">
+    <div class="view-header">
+      <div class="tabs">
+        <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab active" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Tâches</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Brosser les dents</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td></tr>
+          <tr><td>Devoirs faits</td><td>❌</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ================= VUE MOIS ================= -->
+  <main class="view" id="vue-mois">
+    <div class="view-header">
+      <div class="tabs">
+        <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab active" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+    </div>
+    <div class="calendar-month">
+      <div class="calendar-cell"><span class="date">1</span><div class="percent">70%</div></div>
+      <div class="calendar-cell"><span class="date">2</span><div class="percent">100%</div></div>
+      <div class="calendar-cell"><span class="date">3</span><div class="percent">50%</div></div>
+      <div class="calendar-cell"><span class="date">4</span><div class="percent">80%</div></div>
+    </div>
+  </main>
+
+  <!-- ================= VUE RESULTATS ================= -->
+  <main class="view result-view" id="vue-resultats">
+    <h2>Résultats - Bertrand</h2>
+    <div class="result-actions">
+      <button class="upload">📷</button>
+      <button class="delete">🗑️</button>
+    </div>
+    <div class="puzzle-container">
+      <img src="https://picsum.photos/400" alt="Puzzle" class="puzzle-image">
+      <div class="puzzle-mask">
+        <div class="puzzle-piece"></div>
+        <div class="puzzle-piece"></div>
+        <div class="puzzle-piece"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= JS ================= -->
+  <script>
+    // Ouvre/ferme la sidebar
+    document.querySelector(".menu-btn").addEventListener("click", ()=>{
+      document.getElementById("sidebar").classList.toggle("show");
+    });
+
+    // Accordéon enfant
+    document.querySelectorAll(".child-accordion h3").forEach(h=>{
+      h.addEventListener("click", ()=>{
+        h.parentElement.classList.toggle("open");
+      });
+    });
+
+    // Gestion des vues globales
+    function showView(id) {
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      // ferme le menu après clic
+      document.getElementById("sidebar").classList.remove("show");
+    }
+
+    // Tabs (Jour / Semaine / Mois)
+    function switchTab(btn, targetId) {
+      document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      showView(targetId);
+    }
+  </script>
+
+</body>
+</html>
