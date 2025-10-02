@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Démo Flip 3D Puzzle</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f5f5f5;
+    }
+
+    .puzzle-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 2px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      perspective: 800px; /* ✅ profondeur 3D */
+    }
+
+    .puzzle-piece {
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: #333;
+      transform-style: preserve-3d;   /* ✅ garde la 3D */
+      backface-visibility: hidden;    /* ✅ cache la face arrière */
+      transform: rotateY(0deg);
+      transition: transform 0.8s ease, opacity 0.8s ease;
+    }
+
+    .puzzle-piece.revealed {
+      transform: rotateY(180deg) scale(0.9);
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="puzzle-container" id="puzzle"></div>
+
+  <script>
+    // Crée 9 cases
+    const container = document.getElementById("puzzle");
+    for (let i = 0; i < 9; i++) {
+      const piece = document.createElement("div");
+      piece.className = "puzzle-piece";
+      piece.textContent = i + 1; // juste pour voir
+      container.appendChild(piece);
+    }
+
+    // Révèle les cases progressivement avec flip
+    const pieces = document.querySelectorAll(".puzzle-piece");
+    setTimeout(() => {
+      pieces.forEach((p, i) => {
+        setTimeout(() => p.classList.add("revealed"), 150 * i);
+      });
+    }, 500);
+  </script>
+</body>
+</html>

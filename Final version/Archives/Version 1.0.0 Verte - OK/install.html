@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Installer l’app – Daily Home Kid Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .install-wrap{max-width:900px;margin:0 auto;padding:1rem;}
+    .install-hero{ text-align:center;background:var(--card-bg,#f9f9f9);border-radius:12px;padding:1rem;margin:0 0 1rem 0; }
+    .install-grid{ display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+    .install-card{ background:var(--card-bg,#f9f9f9);border:1px solid #ddd;border-radius:12px;padding:1rem;display:flex;flex-direction:column;gap:.75rem }
+    .store-icons{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .store-badge{display:inline-flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;border:1px solid #e5e5e5;padding:.35rem .5rem;height:42px;}
+    .store-badge img,.store-badge svg{max-height:28px;height:28px;width:auto;display:block;}
+    .install-steps{font-size:.95rem;line-height:1.45}
+    .install-steps li{margin:.25rem 0}
+    .note{font-size:.9rem;opacity:.85}
+    .qrcode{display:flex;align-items:center;justify-content:center;border:1px dashed #ccc;border-radius:12px;padding:1rem;background:#fff}
+    body.dark .store-badge{background:#fff;border-color:#333}
+    body.dark .qrcode{background:#fff;border-color:#444}
+
+    /* 📱 Responsive mobile */
+    @media (max-width: 400px) {
+      .install-hero h1 { font-size: 1.2rem; }
+      .install-hero p { font-size: 0.85rem; }
+      .install-card { padding: 0.6rem; }
+      .install-steps { font-size: 0.8rem; }
+      .install-steps li { margin: 0.15rem 0; }
+      .store-badge { padding: 0.2rem 0.4rem; height: 36px; }
+      .store-badge img,.store-badge svg { max-height: 22px; }
+      .qrcode svg { width: 120px; height: 120px; }
+    }
+
+    /* Menu burger */
+    #navMenu { display: none; align-items: center; gap: 0.5rem; }
+    #navMenu.show { display: flex; }
+    .nav-left { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-left">
+    
+    <nav id="navMenu" style="display:flex;">
+      <a href="index.html" aria-label="Accueil"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg></a>
+      <a href="settings.html" aria-label="Paramètres"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a7.8 7.8 0 0 0 .1-2l2-1.1-1.4-2.4-2.2.6a7.8 7.8 0 0 0-1.7-1l-.3-2.3h-2.8l-.3 2.3a7.8 7.8 0 0 0-1.7 1l-2.2-.6L2.5 12l2 1.1a7.8 7.8 0 0 0 .1 2L2.5 16l1.4 2.4 2.2-.6a7.8 7.8 0 0 0 1.7 1l.3 2.2h2.8l.3-2.2a7.8 7.8 0 0 0 1.7-1l2.2.6 1.4-2.4-2-.9Z"></path></svg></a>
+      <a href="about.html" aria-label="À propos"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="8"></line><line x1="12" y1="12" x2="12" y2="17"></line></svg></a>
+      <a href="install.html" aria-label="Installer l’app"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v10"></path><polyline points="8 11 12 15 16 11"></polyline><path d="M4 20h16"></path></svg></a>
+    </nav>
+  </div>
+  <button class="toggle-dark" onclick="toggleDarkMode()"><span class="icon-sun" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="5"></line><line x1="12" y1="19" x2="12" y2="22"></line><line x1="2" y1="12" x2="5" y2="12"></line><line x1="19" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"></line><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"></line><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"></line><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"></line></svg></span><span class="icon-moon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg></span></button>
+</header>
+
+<main class="install-wrap">
+  <section class="install-hero">
+    <h1>📲 Installer l’application</h1>
+    <p>Ajoute <b>Daily Home Kid Challenge</b> sur ton écran d’accueil pour une expérience comme une app (PWA).</p>
+  </section>
+
+  <section class="install-grid">
+    <!-- iOS -->
+    <article class="install-card">
+      <div class="store-icons">
+        <span class="store-badge" title="Apple">
+          <svg viewBox="0 0 24 24"><path fill="#000" d="M16.7 13.2c0-2.2 1.8-3.3 1.9-3.4-1-1.4-2.6-1.6-3.1-1.6-1.3-.1-2.5.8-3.1.8-.6 0-1.6-.8-2.7-.8-1.4 0-2.7.8-3.4 2.1-1.5 2.7-.4 6.7 1.1 8.8.7 1 1.5 2 2.6 2 1-.1 1.4-.7 2.6-.7 1.2 0 1.6.7 2.7.7 1.1 0 1.9-1 2.6-2 0 0 1.5-2.2 1.5-4.9 0-2.4-1.6-3.6-1.6-3.6zm-2.1-6.6c.6-.8 1.1-2 1-3.2-1 .1-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 .9.1 2-.5 2.9-1.3z"/></svg>
+        </span>
+        <span class="store-badge" title="Safari">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0b84ff"/><polygon points="12,6 15,15 6,12 15,9" fill="#fff"/></svg>
+        </span>
+      </div>
+      <h3>iPhone / iPad (Safari)</h3>
+      <ol class="install-steps">
+        <li>Ouvre le site dans <b>Safari</b>.</li>
+        <li>Appuie sur <b>Partager</b> (icône carré + flèche).</li>
+        <li>Choisis <b>Ajouter à l’écran d’accueil</b>.</li>
+        <li>Valide avec <b>Ajouter</b>.</li>
+      </ol>
+      <p class="note">Astuce : si l’option n’apparaît pas, fais défiler la fiche de partage vers le bas.</p>
+    </article>
+
+    <!-- Android Chrome -->
+    <article class="install-card">
+      <div class="store-icons">
+        <span class="store-badge" title="Android">
+          <svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="9" rx="2" fill="#3ddc84"/><circle cx="9" cy="11" r="1" fill="#fff"/><circle cx="15" cy="11" r="1" fill="#fff"/></svg>
+        </span>
+        <span class="store-badge" title="Chrome">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f44336"/><path d="M12 2a10 10 0 0 1 8.66 5H12z" fill="#ffeb3b"/><path d="M21.32 7A10 10 0 0 1 12 22l4.33-7.5z" fill="#4caf50"/><circle cx="12" cy="12" r="4" fill="#2196f3"/></svg>
+        </span>
+      </div>
+      <h3>Android (Chrome)</h3>
+      <ol class="install-steps">
+        <li>Ouvre le site dans <b>Chrome</b>.</li>
+        <li>Appuie sur <b>⋮</b> en haut à droite.</li>
+        <li>Choisis <b>Installer l’application</b> ou <b>Ajouter à l’écran d’accueil</b>.</li>
+        <li>Confirme l’installation.</li>
+      </ol>
+    </article>
+
+    <!-- Desktop -->
+    <article class="install-card">
+      <div class="store-icons">
+        <span class="store-badge" title="Chrome">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f44336"/><path d="M12 2a10 10 0 0 1 8.66 5H12z" fill="#ffeb3b"/><path d="M21.32 7A10 10 0 0 1 12 22l4.33-7.5z" fill="#4caf50"/><circle cx="12" cy="12" r="4" fill="#2196f3"/></svg>
+        </span>
+        <span class="store-badge" title="Edge">
+          <svg viewBox="0 0 24 24"><path d="M12 3c5 0 9 4 9 9h-6c0-1.7-1.3-3-3-3-2.2 0-3 1.8-3 3 0 3 2.5 5 6 5 2.8 0 4.7-1.3 6-3 0 4.4-3.6 8-8 8S4 20.4 4 16c0-5.5 4.5-10 10-13z" fill="#0ea5e9"/><path d="M20 12c0 3.3-2.7 6-6 6-2.5 0-4-1.4-4-3 0-1.3 1-2 2-2 1.1 0 2 .9 2 2h6z" fill="#22c55e"/></svg>
+        </span>
+      </div>
+      <h3>Ordinateur (Chrome / Edge)</h3>
+      <ol class="install-steps">
+        <li>Ouvre le site dans <b>Chrome</b> ou <b>Edge</b>.</li>
+        <li>Clique sur l’icône <b>Installer</b> dans la barre d’adresse (ou le menu ⋮).</li>
+        <li>Choisis <b>Installer</b>.</li>
+      </ol>
+      <div class="qrcode">
+        <svg viewBox="0 0 120 120" width="160" height="160"><rect width="120" height="120" fill="#eee"/><rect x="10" y="10" width="30" height="30" fill="#000"/><rect x="80" y="10" width="30" height="30" fill="#000"/><rect x="10" y="80" width="30" height="30" fill="#000"/><rect x="45" y="45" width="30" height="30" fill="#000"/></svg>
+      </div>
+    </article>
+  </section>
+</main>
+
+<script>
+if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add("dark");
+if(localStorage.getItem("darkMode")==="true")document.body.classList.add("dark");
+function toggleDarkMode(){document.body.classList.toggle("dark");localStorage.setItem("darkMode",document.body.classList.contains("dark"));}
+
+
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  document.querySelectorAll('header a[href]').forEach(a => {
+    const target = (a.getAttribute('href') || '').split('/').pop().toLowerCase();
+    if (target === file) a.classList.add('active');
+  });
+});
+</script>
+
+
+</body>
+</html>

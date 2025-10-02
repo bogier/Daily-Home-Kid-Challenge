@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>À propos - Daily Home Kid Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#4CAF50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header>
+  <div class="nav-left">
+    
+    <nav id="navMenu" style="display:flex;">
+      <a href="index.html" aria-label="Accueil"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg></a>
+      <a href="settings.html" aria-label="Paramètres"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a7.8 7.8 0 0 0 .1-2l2-1.1-1.4-2.4-2.2.6a7.8 7.8 0 0 0-1.7-1l-.3-2.3h-2.8l-.3 2.3a7.8 7.8 0 0 0-1.7 1l-2.2-.6L2.5 12l2 1.1a7.8 7.8 0 0 0 .1 2L2.5 16l1.4 2.4 2.2-.6a7.8 7.8 0 0 0 1.7 1l.3 2.2h2.8l.3-2.2a7.8 7.8 0 0 0 1.7-1l2.2.6 1.4-2.4-2-.9Z"></path></svg></a>
+      <a href="about.html" aria-label="À propos"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="8"></line><line x1="12" y1="12" x2="12" y2="17"></line></svg></a>
+      <a href="install.html" aria-label="Installer l’app"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v10"></path><polyline points="8 11 12 15 16 11"></polyline><path d="M4 20h16"></path></svg></a>
+    </nav>
+  </div>
+  <button class="toggle-dark" onclick="toggleDarkMode()"><span class="icon-sun" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="5"></line><line x1="12" y1="19" x2="12" y2="22"></line><line x1="2" y1="12" x2="5" y2="12"></line><line x1="19" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"></line><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"></line><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"></line><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"></line></svg></span><span class="icon-moon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg></span></button>
+</header>
+
+<main>
+  <h2>ℹ️ À propos de Daily Home Kid Challenge</h2>
+  <p>
+    <b>Daily Home Kid Challenge</b> est une application éducative ludique qui aide les enfants à suivre leurs tâches quotidiennes
+    et à recevoir des récompenses motivantes basées sur leur engagement.
+  </p>
+
+  <h3>Fonctionnalités principales</h3>
+  <ul>
+    <li>👨‍👩‍👧 Gestion <b>multi-enfants</b> avec paramètres personnalisés</li>
+    <li>📝 Tableau <b>quotidien et hebdomadaire</b> avec cases à cocher</li>
+    <li>⚖️ <b>Pondération des tâches</b> par jour</li>
+    <li>📊 Calcul automatique du <b>pourcentage de réussite</b> hebdomadaire</li>
+    <li>🎁 Récompenses personnalisées ou par défaut avec paliers configurables</li>
+    <li>📖 <b>Historique</b> avec tableau et graphique d’évolution</li>
+    <li>♻️ Réinitialisation possible (semaine, historique ou totale)</li>
+    <li>📥 Import / 📤 Export d’un enfant (JSON)</li>
+    <li>📱 <b>PWA</b> : fonctionne hors ligne, installable sur mobile et PC</li>
+    <li>🌙 Mode sombre clair / foncé</li>
+  </ul>
+
+  <h3>Règles de récompense</h3>
+  <ul>
+    <li>Moins que le seuil configuré → ❌ Aucune récompense</li>
+    <li>Entre Palier 1 et Palier 2 → 🎁 Récompense Palier 1</li>
+    <li>À partir de Palier 2 → 🏆 Récompense Palier 2</li>
+  </ul>
+
+  <h3>Nouveautés version 4.4</h3>
+  <ul>
+    <li>🔠 Saisie par jour</li>
+    <li>👁 Affichage enfant sous forme de puzzle</li>
+  </ul>
+
+  <h3>Données & confidentialité</h3>
+  <p>Toutes les données sont stockées <b>localement</b> dans ton navigateur (localStorage). Rien n’est envoyé sur un serveur externe.</p>
+
+  <h3>📘 Guide d’utilisation</h3>
+  <ul>
+    <li><b>➕ Ajouter un enfant</b> : crée un nouvel enfant avec ses paramètres.</li>
+    <li><b>💾 Enregistrer</b> : sauvegarde manuelle (en plus de l’auto-save).</li>
+    <li><b>🔄 Réinitialiser enfants</b> : supprime tous les enfants.</li>
+    <li><b>💣 Purge totale</b> : supprime toutes les données (protégée par confirmation).</li>
+  </ul>
+
+  <div style="text-align:center;margin-top:1rem;">
+    <a href="changelog.html" target="_blank" style="color:var(--primary);font-weight:bold;">📜 Voir le changelog complet</a>
+  </div>
+</main>
+
+<script>
+if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add("dark");
+if(localStorage.getItem("darkMode")==="true")document.body.classList.add("dark");
+function toggleDarkMode(){document.body.classList.toggle("dark");localStorage.setItem("darkMode",document.body.classList.contains("dark"));}
+
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  document.querySelectorAll('header a[href]').forEach(a => {
+    const target = (a.getAttribute('href') || '').split('/').pop().toLowerCase();
+    if (target === file) a.classList.add('active');
+  });
+});
+</script>
+
+
+</body>
+</html>

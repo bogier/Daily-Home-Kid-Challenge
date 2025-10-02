@@ -1,0 +1,385 @@
+:root {
+  --primary: #28a745;
+  --primary-dark: #1e7e34;
+  --danger: #dc3545;
+  --bg-light: #f9f9f9;
+  --bg-dark: #222;
+  --text-dark: #111;
+  --text-light: #eee;
+  --card-bg: #fff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Calibri, Verdana, Arial, sans-serif;
+  background: var(--bg-light);
+  color: var(--text-dark);
+}
+body.dark {
+  background: var(--bg-dark);
+  color: var(--text-light);
+}
+
+/* Mode sombre pour la section récompenses */
+body.dark .week-rewards {
+  background: #333;
+  color: var(--text-light);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+/* Mode sombre pour le tableau des tâches */
+body.dark table {
+  background: #333;
+  color: var(--text-light);
+  border-collapse: collapse;
+  width: 100%;
+}
+body.dark th, body.dark td {
+  border: 1px solid #555;
+  padding: 0.4rem;
+}
+body.dark th {
+  background: #444;
+  color: var(--text-light);
+}
+
+/* ---------------- HEADER ---------------- */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem;
+}
+header a {
+  color: white;
+  text-decoration: none;
+  margin: 0 0.4rem;
+  font-size: 1.2rem;
+}
+header .toggle-dark {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+/* Boutons danger en mode sombre */
+body.dark .btn-danger {
+  background: #a00;
+  color: #fff;
+}
+
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+/* Menu burger */
+#navMenu {
+  display: none;          /* caché par défaut */
+  align-items: center;
+  gap: 0.5rem;
+}
+
+  display: flex;          /* affiché en ligne quand actif */
+}
+
+/* Pour que le bouton burger + menu soient côte à côte */
+.nav-left {
+  display: flex;
+  align-items: center;
+}
+
+
+/* ---------------- BUTTONS ---------------- */
+.btn {
+  background: var(--primary);
+  border: none;
+  padding: 0.5rem 0.9rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s, transform .06s ease-in-out;
+  margin: 0.2rem;
+  font-size: 0.9rem;
+}
+.btn:active { transform: scale(0.98); }
+.btn:hover { background: var(--primary-dark); }
+.btn-danger { background: var(--danger); }
+.btn-edit { background: orange; color: #fff; }
+.btn-warning { background: #f59e0b; color: #fff; }
+.btn-small { padding: .35rem .6rem; font-size: .85rem; }
+.btn-move {
+  background: #6c757d;
+  color: white;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+.btn-delete {
+  background: var(--danger);
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+}
+
+/* ---------------- LAYOUT/SECTIONS ---------------- */
+.section {
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin: 1rem 0;
+  background: var(--card-bg);
+}
+body.dark .section { background: #333; }
+.section h4 {
+  margin-top: 0;
+  color: var(--primary-dark);
+  border-bottom: 1px solid var(--primary);
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.child-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  margin: .6rem 0 .2rem 0;
+}
+
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--card-bg); }
+th, td { border: 1px solid #ddd; padding: .4rem; text-align: center; }
+thead th { background: #f1f5f9; position: sticky; top: 0; z-index: 1; }
+body.dark thead th { background: #2b2b2b; }
+
+/* Résultats + Progress */
+.result { text-align:center; font-weight: 600; margin:.8rem 0; }
+.progress-container {
+  height: 10px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin:.4rem auto; max-width: 640px;
+}
+.progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg,#34d399,#10b981); }
+
+/* Récompenses semaine */
+.week-rewards {
+  margin: .2rem auto .1rem;
+  max-width: 800px;
+  background: var(--card-bg);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: .6rem .8rem;
+}
+
+/* ---------------- FORMS ---------------- */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.4rem 0;
+}
+.form-row input[type=text],
+.form-row input[type=number] {
+  padding: 0.3rem;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.default-rewards input { width: 12ch; }
+.default-thresholds input { width: 6ch; text-align: center; }
+
+/* ---------------- RÉCOMPENSES HEBDO ---------------- */
+.reward-week {
+  display: grid;
+  grid-template-columns: 8ch 1fr 1fr auto;
+  gap: 0.5rem;
+  margin: 0.4rem 0;
+}
+.reward-week input[disabled] {
+  background: #eee;
+  color: #555;
+  text-align: center;
+}
+
+/* ---------------- TÂCHES ---------------- */
+.task-block {
+  margin-bottom: 0.8rem;
+  padding: 0.4rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: var(--card-bg);
+}
+
+/* Mode sombre pour les blocs de tâches dans settings.html */
+body.dark .task-block {
+  background: #333;
+  border: 1px solid #555;
+}
+
+body.dark .task-block input[type=text],
+body.dark .task-block input[type=number] {
+  background: #444;
+  color: var(--text-light);
+  border: 1px solid #666;
+}
+
+
+.task-row button { font-size: 0.8rem; padding: 0.2rem 0.5rem; }
+.weights-grid {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.3rem 0 0.5rem 2rem;
+  flex-wrap: wrap;
+}
+.weights-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  align-items: center;
+}
+.weights-grid input[type=number] {
+  width: 4ch;
+  padding: 0.2rem;
+  font-size: 0.75rem;
+  text-align: center;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+}
+
+/* Mode sombre pour la page install */
+body.dark .install-hero,
+body.dark .install-card {
+  background: #333;
+  color: var(--text-light);
+  border: 1px solid #555;
+}
+
+body.dark .qrcode {
+  background: #222;
+  border-color: #555;
+}
+
+body.dark .install-steps li {
+  color: var(--text-light);
+}
+
+/* ---------------- AUTRES ---------------- */
+.no-task { font-style: italic; color: #888; }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+.page-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ccc;
+  margin-bottom: 0.3rem;
+}
+.page-item.active .dot { background: var(--primary); }
+.page-item.active span { font-weight: bold; color: var(--primary); }
+
+/* Bonus/Malus (communs) */
+.bonus-malus{
+  display:flex;justify-content:center;gap:1rem;margin:.5rem 0 1rem 0;flex-wrap:wrap;
+}
+.bonus-malus label{ font-weight:600;font-size:.9rem; }
+.bonus-malus input{
+  width:6ch;text-align:center;padding:.2rem;font-size:.9rem;border:1px solid #aaa;border-radius:6px;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+@media (max-width: 768px) {
+  header a { font-size: 1rem; }
+  .btn { font-size: 0.8rem; padding: 0.4rem 0.6rem; }
+  .weights-grid { margin-left: .5rem; }
+}
+
+/* Vue active button */
+.btn.active { background: var(--primary-dark); box-shadow: 0 0 6px rgba(0,0,0,0.3); }
+
+
+/* Icon-only buttons */
+.btn-icon {
+  padding: 0.2rem !important;
+  min-width: 0;
+  width: auto;
+  height: auto;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Liseré de séparation */
+.separator {
+  height: 1px;
+  background: #e5e7eb;
+  margin: .1rem auto;
+  max-width: 800px;
+}
+body.dark .separator { background: #555; }
+
+
+/* Réduire l'espace au-dessus/au-dessous du nom de l'enfant */
+.child-nav h2 { 
+  margin: 0.05rem 0;
+}
+
+
+/* Calendar inline between arrows */
+.calendar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+}
+.calendar #calendar, .calendar .week-info {
+  white-space: nowrap;
+}
+
+
+/* Unified icon style (language-agnostic, consistent across platforms) */
+.icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: -2px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+/* For filled shapes without strokes */
+.icon.fill { stroke: none; fill: currentColor; }
+
+
+/* Theme toggle icons: show sun in light, moon in dark */
+.icon-sun { display: inline-block; }
+.icon-moon { display: none; }
+body.dark .icon-sun { display: none; }
+body.dark .icon-moon { display: inline-block; }
+
+/* Teinte active pour les icônes du header */
+header a { transition: color .15s ease; }
+header a.active { color: var(--primary, #2563eb); }
+body.dark header a.active { color: var(--primary-dark, #60a5fa); }
