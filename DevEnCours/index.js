@@ -71,7 +71,7 @@ function rebuildSidebar(){
     container.insertAdjacentHTML("beforeend",`
       <li class="child-accordion${active}" data-idx="${idx}">
         <h3>
-          <span><img src="${ch.settings.avatar || "img/"+name+".png"}" class="avatar" alt=""> ${name}</span>
+          <span><img src="${ch.settings.avatar || "img/default.png"}" class="avatar" alt=""> ${name}</span>
           <span class="arrow">▼</span>
         </h3>
         <ul class="options">
@@ -247,23 +247,52 @@ function majVueJour(){
   child.tasks.forEach((t,i)=>{
     const val = child.notes[key]?.[i]?.[dayIdx] ?? 0;
     const disable=(key!==getCurrentWeekKey())?"disabled":"";
+
+    const name = `t${i}d${dayIdx}`;
     tbody.insertAdjacentHTML("beforeend",`
       <tr>
         <td>${t.name}</td>
-        <td>
-          <select data-task="${i}" data-day="${dayIdx}" ${disable}>
-            <option value="0" ${val==0?'selected':''}>❌</option>
-            <option value="0.5" ${val==0.5?'selected':''}>⚠️</option>
-            <option value="1" ${val==1?'selected':''}>✅</option>
-          </select>
+        <td class="rating-cell">
+          <input type="radio" id="${name}v0" name="${name}" data-task="${i}" data-day="${dayIdx}" value="0" ${val==0?'checked':''} ${disable}>
+          <label for="${name}v0">❌</label>
+          <input type="radio" id="${name}v05" name="${name}" data-task="${i}" data-day="${dayIdx}" value="0.5" ${val==0.5?'checked':''} ${disable}>
+          <label for="${name}v05">⚠️</label>
+          <input type="radio" id="${name}v1" name="${name}" data-task="${i}" data-day="${dayIdx}" value="1" ${val==1?'checked':''} ${disable}>
+          <label for="${name}v1">✅</label>
         </td>
       </tr>`);
   });
 
-  tbody.querySelectorAll("select").forEach(sel=>sel.addEventListener("change",()=>{
-    sauverNotes(); 
-    calculer();
-  }));
+  // Écouteurs
+  tbody.querySelectorAll("input[type=radio]").forEach(r=>{
+    r.addEventListener("change",()=>{
+      sauverNotes(); 
+      calculer();
+      appliquerStyleRadio(r);   // applique style au clic
+    });
+    appliquerStyleRadio(r);     // applique style dès le rendu
+  });
+}
+
+
+
+
+/* Petite fonction utilitaire pour mettre à jour l'opacité des labels */
+function majLabelGroup(groupName){
+  document.querySelectorAll(`input[name='${groupName}'] + label`).forEach(lbl=>{
+    lbl.style.opacity = "0.15"; // par défaut pâle
+  });
+  const checked = document.querySelector(`input[name='${groupName}']:checked`);
+  if(checked) checked.nextElementSibling.style.opacity = "1"; // le choix actif est bien visible
+}
+
+
+function majLabelGroup(groupName){
+  document.querySelectorAll(`input[name='${groupName}'] + label`).forEach(lbl=>{
+    lbl.style.opacity = "0.15"; // par défaut tous pâles
+  });
+  const checked = document.querySelector(`input[name='${groupName}']:checked`);
+  if(checked) checked.nextElementSibling.style.opacity = "1"; // celui choisi est bien visible
 }
 
 function majVueSemaine(){
@@ -284,31 +313,39 @@ function majVueSemaine(){
     days.forEach((_,d)=>{
       const val = child.notes[key]?.[i]?.[d] ?? 0;
       const disable=(key!==getCurrentWeekKey())?"disabled":"";
+      const name = `t${i}d${d}`;
       row+=`
-        <td>
-          <select data-task="${i}" data-day="${d}" ${disable}>
-            <option value="0" ${val==0?'selected':''}>❌</option>
-            <option value="0.5" ${val==0.5?'selected':''}>⚠️</option>
-            <option value="1" ${val==1?'selected':''}>✅</option>
-          </select>
+        <td class="rating-cell">
+          <input type="radio" id="${name}v0" name="${name}" data-task="${i}" data-day="${d}" value="0" ${val==0?'checked':''} ${disable}>
+          <label for="${name}v0">❌</label>
+          <input type="radio" id="${name}v05" name="${name}" data-task="${i}" data-day="${d}" value="0.5" ${val==0.5?'checked':''} ${disable}>
+          <label for="${name}v05">⚠️</label>
+          <input type="radio" id="${name}v1" name="${name}" data-task="${i}" data-day="${d}" value="1" ${val==1?'checked':''} ${disable}>
+          <label for="${name}v1">✅</label>
         </td>`;
     });
     row+="</tr>";
     tbody.insertAdjacentHTML("beforeend",row);
   });
 
-  tbody.querySelectorAll("select").forEach(sel=>sel.addEventListener("change",()=>{
-    sauverNotes(); 
-    calculer();
-  }));
+  // Écouteurs
+  tbody.querySelectorAll("input[type=radio]").forEach(r=>{
+    r.addEventListener("change",()=>{
+      sauverNotes(); 
+      calculer();
+      appliquerStyleRadio(r);   // applique style au clic
+    });
+    appliquerStyleRadio(r);     // applique style dès le rendu
+  });
 }
-
 
 function majVueMois(){
   const cal=document.querySelector("#vue-mois .calendar-month"); 
   if(!cal) return;
   cal.innerHTML="";
-  const child=getChild(); const key=getWeekKey(); ensureNotesForWeek(child,key);
+  const child=getChild(); 
+  const key=getWeekKey(); 
+  ensureNotesForWeek(child,key);
 
   const year=currentDate.getFullYear(), 
         month=currentDate.getMonth(), 
@@ -324,37 +361,75 @@ function majVueMois(){
     const thisDate=new Date(year, month, d);
     thisDate.setHours(0,0,0,0);
 
-    if(thisDate.getTime() === today.getTime()){
-      cell.classList.add("today");     // jour en cours
-    } else if(thisDate < today){
-      cell.classList.add("past");      // jours passés
-    }
-    
+    // Ajouter numéro du jour
     cell.innerHTML=`<span class="date">${d}</span>`;
+
+    // Récupérer la semaine/notes correspondant à ce jour
+    const weekKey = `${getWeekNumber(thisDate)}-${thisDate.getFullYear()}`;
+    ensureNotesForWeek(child, weekKey);
+
+    const dayIdx=(thisDate.getDay()===0)?6:(thisDate.getDay()-1);
+
+    let total=0, done=0;
+    (child.tasks||[]).forEach((t,i)=>{
+      const val = child.notes[weekKey]?.[i]?.[dayIdx] ?? 0;
+      total += 1;
+      done  += parseFloat(val)||0;
+    });
+
+    // Calcul du % réalisé
+    const pct = total ? (done/total*100) : 0;
+
+    // Coloration selon résultat
+    if(pct === 100){
+      cell.style.background = "#e8f5e9"; // vert clair
+      cell.style.border = "2px solid #aaa";
+    } else if(pct > 0){
+      cell.style.background = "#fff4e5"; // orange clair
+      cell.style.border = "2px solid #aaa";
+    } else {
+      cell.style.background = "#fdecea"; // rouge clair
+      cell.style.border = "2px solid #aaa";
+    }
+
+    // Statut jour courant / passé
+    if(thisDate.getTime() === today.getTime()){
+      cell.classList.add("today");
+    } else if(thisDate < today){
+      cell.classList.add("past");
+    }
+
+    // Ajouter le % au centre
+    if(total>0){
+      const span=document.createElement("div");
+      span.className="percent";
+      span.textContent=`${pct.toFixed(0)}%`;
+      cell.appendChild(span);
+    }
+
     cal.appendChild(cell);
   }
 }
+
 
 function sauverNotes(){
   const key=getWeekKey(), child=getChild(); 
   ensureNotesForWeek(child,key);
 
-  document.querySelectorAll("select[data-task]").forEach(sel=>{
-    const i=sel.dataset.task, d=sel.dataset.day;
+  // Sauvegarde toutes les radios cochées
+  document.querySelectorAll("#vue-jour input[type=radio]:checked").forEach(r=>{
+    const i=r.dataset.task, d=r.dataset.day;
     if(i!==undefined && d!==undefined){
-      child.notes[key][i][d]=parseFloat(sel.value);
+      child.notes[key][i][d]=parseFloat(r.value);
     }
   });
 
   saveChildren();
-  // 🔹 Forcer la mise à jour des deux vues pour synchroniser
+
+  // 🔹 Réafficher la vue jour immédiatement
   majVueJour();
-  majVueSemaine();
+  calculer();
 }
-
-
-
-
 
 /* ================= Calcul, Résultats & Historique ================= */
 
@@ -556,42 +631,135 @@ function majUI(){
 /* ===== Nom & Avatar ===== */
 function openNameAvatar(i){
   selectChild(i);
+  showView("vue-nom-avatar");
   const child = getChild();
 
-  // Charger nom existant
+  // Nom existant
   const nameInput = document.getElementById("inputChildName");
-  if(nameInput) nameInput.value = child.settings.childName || "";
+  if(nameInput){
+    nameInput.value = child.settings.childName || "";
+    nameInput.oninput = () => {
+      child.settings.childName = nameInput.value.trim() || "Mon enfant";
+      saveChildren();
+      majUI();
+    };
+  }
 
-  // Charger avatar existant
-  const avatarPreview = document.getElementById("avatarPreview");
-  if(avatarPreview) avatarPreview.src = child.settings.avatar || "img/default.png";
+
+// Avatar existant
+const avatarPreview = document.getElementById("avatarPreview");
+const avatarFileName = document.getElementById("avatarFileName");
+
+console.log("avatarPreview trouvé ?", avatarPreview);
+
+if (child.settings.avatar) {
+  console.log("Avatar trouvé dans localStorage :", child.settings.avatar.substring(0, 50));
+  avatarPreview.src = child.settings.avatar;
+  avatarFileName.textContent = child.settings.avatarName || "Image importée";
+} else {
+  console.log("Pas d’avatar → utilisation du défaut");
+  avatarPreview.src = "img/default.png";
+  avatarFileName.textContent = "Avatar par défaut";
+}
+
+  // Âge
+  const ageInput = document.getElementById("inputChildAge");
+  if(ageInput){
+    ageInput.value = child.settings.age || "";
+    ageInput.oninput = () => {
+      child.settings.age = parseInt(ageInput.value) || null;  // <= sauvegarde dans settings
+      saveChildren();   // <= écrit dans localStorage
+    };
+  }
+
+  // Genre
+  document.querySelectorAll("input[name='childGender']").forEach(radio=>{
+    radio.checked = (child.settings.gender || "non-defini") === radio.value;
+    radio.onchange = () => {
+      if(radio.checked){
+        child.settings.gender = radio.value;  // <= sauvegarde dans settings
+        saveChildren();                       // <= écrit dans localStorage
+      }
+    };
+  });
+
+
+
+  // Upload avatar
+  const inputAvatar = document.getElementById("inputAvatar");
+  if(inputAvatar){
+    inputAvatar.value = "";
+inputAvatar.onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // ✅ Refus si trop gros (>5 Mo)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    alert("⚠️ L’image est trop lourde (max 5 Mo). Choisis une image plus légère.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      // ✅ Redimensionnement automatique à 200x200 px max
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const size = 200;
+      canvas.width = size;
+      canvas.height = size;
+      ctx.drawImage(img, 0, 0, size, size);
+
+      // ✅ Export compressé en PNG base64 (qualité 80%)
+      const dataUrl = canvas.toDataURL("image/png", 0.8);
+
+      // ✅ Mise à jour UI + stockage
+      avatarPreview.src = dataUrl;
+      children[currentChild].settings.avatar = dataUrl;
+      children[currentChild].settings.avatarName = file.name;
+      avatarFileName.textContent = file.name;
+      saveChildren();
+
+      console.log("✅ Avatar compressé et sauvegardé", dataUrl.substring(0, 50));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+
+  }
 
   showView("vue-nom-avatar");
 }
 
-function saveNameAvatar(){
+
+
+
+function deleteAvatar(){
   const child = getChild();
-  const nameInput = document.getElementById("inputChildName");
-  if(nameInput) child.settings.childName = nameInput.value.trim() || "Mon enfant";
+  child.settings.avatar = null;
+  delete child.settings.avatarName;
+  saveChildren();
+
+  const avatarPreview = document.getElementById("avatarPreview");
+  if(avatarPreview) avatarPreview.src = "img/default.png";
+
+  const avatarFileName = document.getElementById("avatarFileName");
+  if(avatarFileName) avatarFileName.textContent = "Avatar par défaut";
 
   const inputAvatar = document.getElementById("inputAvatar");
-  if(inputAvatar && inputAvatar.files && inputAvatar.files[0]){
-    const reader = new FileReader();
-    reader.onload = (e)=>{ 
-      child.settings.avatar = e.target.result; 
-      saveChildren(); 
-      majUI(); 
-    };
-    reader.readAsDataURL(inputAvatar.files[0]);
-  } else {
-    saveChildren(); 
-    majUI();
-  }
-  alert("✅ Nom & avatar enregistrés");
+  if(inputAvatar) inputAvatar.value = "";
+
+  majUI();
+  alert("✅ Avatar réinitialisé à l’image par défaut");
 }
 
 
-/* ===== Gestion des tâches ===== */
+
+
 /* ===== Gestion des tâches ===== */
 function openTaskManager(i){
   selectChild(i);
@@ -644,9 +812,6 @@ function moveTask(i,dir){
   renderTaskList();
 }
 
-
-
-
 /* ===== Gestion des récompenses ===== */
 function openRewardsManager(i){
   selectChild(i);
@@ -683,6 +848,23 @@ function saveRewards(){
   alert("✅ Récompenses enregistrées");
 }
 
+function appliquerStyleRadio(r){
+  const label = r.nextElementSibling;
+  if(!label) return;
+
+  // Reset par défaut
+  label.style.opacity = "0.4";
+  label.style.background = "transparent";
+  label.style.border = "2px solid transparent";
+
+  if(r.checked){
+    label.style.opacity = "1";
+    label.style.border = "2px solid #aaa";
+    if(r.value === "0") label.style.background = "#fdecea";   // rouge clair
+    if(r.value === "0.5") label.style.background = "#fff4e5"; // orange clair
+    if(r.value === "1") label.style.background = "#e8f5e9";   // vert clair
+  }
+}
 
 
 document.addEventListener("DOMContentLoaded",()=>{

@@ -5,7 +5,7 @@
   <title>Daily Home Kid Challenge 2.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="stylesheet" href="style.css?v=3.0"/>
+  <link rel="stylesheet" href="style.css?v=3.5"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="puzzle-utils.js"></script>
 </head>
@@ -160,15 +160,23 @@
     <label for="inputChildName">Nom de l’enfant :</label>
     <input type="text" id="inputChildName" placeholder="Entrez le prénom">
 
-    <div class="avatar-upload">
+<div class="avatar-upload">
+  <div class="avatar-frame">
+    <div class="avatar-wrapper">
       <img id="avatarPreview" src="img/default.png" alt="Avatar">
-      <input type="file" id="inputAvatar" accept="image/*">
+      <button type="button" class="delete-avatar-btn" onclick="deleteAvatar()">🗑️</button>
     </div>
+  </div>
+  <input type="file" id="inputAvatar" accept="image/*">
+</div>
+<p id="avatarFileName" class="avatar-filename">Avatar par défaut</p>
+
+
+
   </div>
 
   <div class="param-actions">
     <button onclick="majUI()">❌ Annuler</button>
-    <button class="save" onclick="saveNameAvatar()">💾 Enregistrer</button>
   </div>
 </main>
 
@@ -222,6 +230,6 @@
 
 
   <!-- ================= JS ================= -->
-  <script src="index.js?v=3.0"></script>
+  <script src="index.js?v=3.5"></script>
 </body>
 </html>

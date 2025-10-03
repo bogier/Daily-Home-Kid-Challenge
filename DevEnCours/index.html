@@ -5,7 +5,7 @@
   <title>Daily Home Kid Challenge 2.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="stylesheet" href="style.css?v=3.0"/>
+  <link rel="stylesheet" href="style.css?v=3.5"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="puzzle-utils.js"></script>
 </head>
@@ -151,26 +151,48 @@
   </main>
 
 <!-- Vue Nom & Avatar -->
+<!-- Vue Nom & Avatar -->
 <main class="view" id="vue-nom-avatar">
   <div class="view-header">
     <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
     <h2>Nom & Avatar</h2>
   </div>
+
   <div class="param-section">
+
+    <!-- Avatar en premier -->
+    <div class="avatar-frame">
+      <div class="avatar-wrapper">
+        <img id="avatarPreview" src="img/default.png" alt="Avatar" class="avatar-large">
+        <button type="button" class="delete-avatar-btn" onclick="deleteAvatar()">🗑️</button>
+      </div>
+    </div>
+    <input type="file" id="inputAvatar" accept="image/*">
+    <p id="avatarFileName" class="avatar-filename">Avatar par défaut</p>
+
+    <!-- Nom -->
     <label for="inputChildName">Nom de l’enfant :</label>
     <input type="text" id="inputChildName" placeholder="Entrez le prénom">
 
-    <div class="avatar-upload">
-      <img id="avatarPreview" src="img/default.png" alt="Avatar">
-      <input type="file" id="inputAvatar" accept="image/*">
+    <!-- Âge -->
+    <label for="inputChildAge">Âge :</label>
+    <input type="number" id="inputChildAge" min="0" max="20" placeholder="Entrez l’âge">
+
+    <!-- Genre -->
+    <label>Genre :</label>
+    <div class="gender-options">
+      <label><input type="radio" name="childGender" value="fille"> Fille</label>
+      <label><input type="radio" name="childGender" value="garçon"> Garçon</label>
+      <label><input type="radio" name="childGender" value="non-defini" checked> Non défini</label>
     </div>
+
   </div>
 
   <div class="param-actions">
     <button onclick="majUI()">❌ Annuler</button>
-    <button class="save" onclick="saveNameAvatar()">💾 Enregistrer</button>
   </div>
 </main>
+
 
 
 <!-- Vue Gestion des Tâches -->
@@ -222,6 +244,6 @@
 
 
   <!-- ================= JS ================= -->
-  <script src="index.js?v=3.0"></script>
+  <script src="index.js?v=3.5"></script>
 </body>
 </html>

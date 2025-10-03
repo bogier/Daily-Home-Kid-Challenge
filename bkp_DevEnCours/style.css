@@ -78,10 +78,11 @@ h1,h2,h3,h4,h5,h6, p, td, th, li, button {
 .child-accordion.active h3::after {
   content:"Actif";
   font-size:.65rem;
-  color:var(--secondary);
+  color:#fff;              /* 🔹 blanc au lieu de bleu */
   margin-left:.3rem;
   font-weight:bold;
 }
+
 
 .child-accordion {
   border-bottom: 1px solid rgba(255,255,255,0.15);
@@ -313,13 +314,6 @@ thead th { background:#f1f5f9; }
   gap:.8rem;
   margin-top:.5rem;
 }
-.avatar-upload img {
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  box-shadow:var(--shadow);
-}
-
 .task-add {
   display:flex;
   gap:.5rem;
@@ -380,3 +374,180 @@ thead th { background:#f1f5f9; }
   background: var(--secondary);
 }
 
+/* ========= RATING CELL ========= */
+.rating-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.2rem;      /* petit espace uniforme */
+  font-size: 0.9rem; /* icônes réduites */
+}
+
+/* Inputs invisibles mais actifs */
+.rating-cell input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.rating-cell label {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 6px;
+  transition: transform .2s, opacity .2s, background .2s, border .2s;
+  opacity: 0.4;              /* par défaut un peu visibles */
+  border: 2px solid transparent;
+}
+
+/* Quand coché → bien visible + fond coloré + contour gris */
+.rating-cell input[value="0"]:checked + label {
+  opacity: 1;
+  background: #fdecea;   /* rouge clair */
+  border: 2px solid #aaa;
+}
+.rating-cell input[value="0.5"]:checked + label {
+  opacity: 1;
+  background: #fff4e5;   /* orange clair */
+  border: 2px solid #aaa;
+}
+.rating-cell input[value="1"]:checked + label {
+  opacity: 1;
+  background: #e8f5e9;   /* vert clair */
+  border: 2px solid #aaa;
+}
+
+/* Effet hover */
+.rating-cell label:hover {
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+
+/* Vue Jour : variante compacte sur une ligne centrée */
+#vue-jour .rating-cell,
+#vue-semaine .rating-cell {
+  display: flex;
+  justify-content: center;   /* centrage horizontal */
+  align-items: center;
+  gap: 0.2rem;               /* petit espace homogène */
+  font-size: 0.9rem;         /* taille réduite */
+}
+
+#vue-jour .rating-cell label,
+#vue-semaine .rating-cell label {
+  padding: 0 3px;            /* espace minimal autour de l’icône */
+  display: inline-flex;      /* garder bien centré */
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-top: .5rem;
+}
+
+.avatar-frame {
+  padding: 6px;
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  background: #fff;
+  display: inline-block;
+  box-shadow: var(--shadow);
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-wrapper img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  object-fit: cover;
+}
+
+.delete-avatar-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background .3s;
+}
+
+.delete-avatar-btn:hover {
+  background: #c62828;
+}
+
+.avatar-filename {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.4rem;
+  text-align: left;
+}
+
+/* ===== Avatars uniformisés ===== */
+/* ===== Avatars ===== */
+
+/* Petits avatars : sidebar + entêtes */
+.avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Grand avatar : vue Nom & Avatar */
+.avatar-large {
+  width: 150px;
+  height: 150px;
+  min-width: 150px;
+  min-height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: auto;
+  box-shadow: var(--shadow);
+  border: 2px solid #ddd;
+  flex: 0 0 150px; /* 🔹 empêche flexbox de rétrécir */
+}
+
+/* Contexte Nom & Avatar */
+#vue-nom-avatar .avatar-upload {
+  align-items: flex-start;
+  gap: 1rem;
+}
+#vue-nom-avatar .avatar-frame {
+  flex: 0 0 auto;
+}
+#vue-nom-avatar input[type="file"] {
+  flex: 1 1 auto;
+  min-width: 0; /* pour que l’input s’adapte sans écraser l’image */
+}
+
+/* === FINAL AVATAR FIX === */
+/* Prevent flexbox from shrinking the preview image */
+#vue-nom-avatar .avatar-upload { align-items: flex-start; gap: 1rem; }
+#vue-nom-avatar .avatar-frame { flex: 0 0 auto !important; }
+#vue-nom-avatar input[type="file"] {
+  flex: 1 1 auto;
+  min-width: 0;                 /* allow the input to shrink instead of shrinking the image */
+}
