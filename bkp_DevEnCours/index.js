@@ -229,80 +229,46 @@ function ensureNotesForWeek(child,key){
 }
 
 function majVueJour(){
-  const tbody=document.querySelector("#vue-jour table tbody"); 
-  if(!tbody) return;
+  const tbody=document.querySelector("#vue-jour table tbody"); if(!tbody) return;
   tbody.innerHTML="";
-  const child=getChild(); 
-  const key=getWeekKey(); 
-  ensureNotesForWeek(child,key);
-
-  const d=new Date(currentDate); 
-  const dayIdx=(d.getDay()===0)?6:(d.getDay()-1);
+  const child=getChild(); const key=getWeekKey(); ensureNotesForWeek(child,key);
+  const d=new Date(currentDate); const dayIdx=(d.getDay()===0)?6:(d.getDay()-1);
 
   if(!child.tasks.length){
-    tbody.innerHTML=`<tr><td colspan="2">⚠️ Aucune tâche définie</td></tr>`; 
-    return;
+    tbody.innerHTML=`<tr><td colspan="2">⚠️ Aucune tâche définie</td></tr>`; return;
   }
-
   child.tasks.forEach((t,i)=>{
-    const val = child.notes[key]?.[i]?.[dayIdx] ?? 0;
+    const checked=child.notes[key]?.[i]?.[dayIdx]?"checked":"";
     const disable=(key!==getCurrentWeekKey())?"disabled":"";
     tbody.insertAdjacentHTML("beforeend",`
       <tr>
         <td>${t.name}</td>
-        <td>
-          <select data-task="${i}" data-day="${dayIdx}" ${disable}>
-            <option value="0" ${val==0?'selected':''}>❌</option>
-            <option value="0.5" ${val==0.5?'selected':''}>⚠️</option>
-            <option value="1" ${val==1?'selected':''}>✅</option>
-          </select>
-        </td>
+        <td><input type="checkbox" data-task="${i}" data-day="${dayIdx}" ${checked} ${disable}></td>
       </tr>`);
   });
-
-  tbody.querySelectorAll("select").forEach(sel=>sel.addEventListener("change",()=>{
-    sauverNotes(); 
-    calculer();
-  }));
+  tbody.querySelectorAll("input[type=checkbox]").forEach(cb=>cb.addEventListener("change",()=>{sauverNotes(); calculer();}));
 }
 
 function majVueSemaine(){
-  const tbody=document.querySelector("#vue-semaine table tbody"); 
-  if(!tbody) return;
+  const tbody=document.querySelector("#vue-semaine table tbody"); if(!tbody) return;
   tbody.innerHTML="";
-  const child=getChild(); 
-  const key=getWeekKey(); 
-  ensureNotesForWeek(child,key);
+  const child=getChild(); const key=getWeekKey(); ensureNotesForWeek(child,key);
 
   if(!child.tasks.length){
-    tbody.innerHTML=`<tr><td colspan="8">⚠️ Aucune tâche définie</td></tr>`; 
-    return;
+    tbody.innerHTML=`<tr><td colspan="8">⚠️ Aucune tâche définie</td></tr>`; return;
   }
-
   child.tasks.forEach((t,i)=>{
     let row=`<tr><td>${t.name}</td>`;
     days.forEach((_,d)=>{
-      const val = child.notes[key]?.[i]?.[d] ?? 0;
+      const checked=child.notes[key]?.[i]?.[d]?"checked":"";
       const disable=(key!==getCurrentWeekKey())?"disabled":"";
-      row+=`
-        <td>
-          <select data-task="${i}" data-day="${d}" ${disable}>
-            <option value="0" ${val==0?'selected':''}>❌</option>
-            <option value="0.5" ${val==0.5?'selected':''}>⚠️</option>
-            <option value="1" ${val==1?'selected':''}>✅</option>
-          </select>
-        </td>`;
+      row+=`<td><input type="checkbox" data-task="${i}" data-day="${d}" ${checked} ${disable}></td>`;
     });
     row+="</tr>";
     tbody.insertAdjacentHTML("beforeend",row);
   });
-
-  tbody.querySelectorAll("select").forEach(sel=>sel.addEventListener("change",()=>{
-    sauverNotes(); 
-    calculer();
-  }));
+  tbody.querySelectorAll("input[type=checkbox]").forEach(cb=>cb.addEventListener("change",()=>{sauverNotes(); calculer();}));
 }
-
 
 function majVueMois(){
   const cal=document.querySelector("#vue-mois .calendar-month"); 
@@ -339,17 +305,18 @@ function sauverNotes(){
   const key=getWeekKey(), child=getChild(); 
   ensureNotesForWeek(child,key);
 
-  document.querySelectorAll("select[data-task]").forEach(sel=>{
-    const i=sel.dataset.task, d=sel.dataset.day;
+  document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+    const i=cb.dataset.task, d=cb.dataset.day;
     if(i!==undefined && d!==undefined){
-      child.notes[key][i][d]=parseFloat(sel.value);
+      child.notes[key][i][d]=cb.checked?1:0;
     }
   });
 
   saveChildren();
-  // 🔹 Forcer la mise à jour des deux vues pour synchroniser
-  majVueJour();
-  majVueSemaine();
++
++  // 🔹 Forcer la mise à jour des deux vues pour synchroniser
++  majVueJour();
++  majVueSemaine();
 }
 
 
@@ -361,28 +328,17 @@ function sauverNotes(){
 let historyChart=null;
 
 function calculer(){
-  const child=getChild(); 
-  const key=getWeekKey(); 
-  ensureNotesForWeek(child,key);
-  const notes=child.notes[key]||[]; 
-  let total=0,done=0;
-
+  const child=getChild(); const key=getWeekKey(); ensureNotesForWeek(child,key);
+  const notes=child.notes[key]||[]; let total=0,done=0;
   (child.tasks||[]).forEach((t,i)=>{
-    (notes[i]||[]).forEach((val=0)=>{ 
-      total+=1;         // chaque case vaut 1 point max
-      done+=parseFloat(val)||0; 
-    });
+    (t.weights||[]).forEach((w=0,d)=>{ total+=+w||0; if(notes[i]?.[d]) done+=+w||0; });
   });
-
   const pct=total?(done/total*100):0;
 
-  const res=document.getElementById("resultat"); 
-  if(res) res.textContent=`✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
-  const pb=document.getElementById("progressBar"); 
-  if(pb) pb.style.width=Math.min(100,Math.max(0,pct))+"%";
+  const res=document.getElementById("resultat"); if(res) res.textContent=`✅ ${done}/${total} pts (${pct.toFixed(1)}%)`;
+  const pb=document.getElementById("progressBar"); if(pb) pb.style.width=Math.min(100,Math.max(0,pct))+"%";
 
-  const week=getWeekKey(); 
-  child.history=child.history||[];
+  const week=getWeekKey(); child.history=child.history||[];
   let reward="❌ Aucune récompense", palier="-";
   if(pct >= (child.settings.thresholdHigh||50) && child.settings.rewardHigh){
     reward=`🏆 ${child.settings.rewardHigh}`; palier="Palier 2";
