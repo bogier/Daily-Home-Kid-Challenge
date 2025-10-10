@@ -175,13 +175,27 @@ h1,h2,h3,h4,h5,h6, p, td, th, li, button {
   align-items:center; /* 🔹 pour aligner le jour avec les boutons */
 }
 .tabs button {
-  border:none;
-  padding:.5rem .9rem;
-  border-radius:var(--radius);
-  background:#e5e7eb;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  background: #e5e7eb;
   color: var(--text-color);
-  transition: background .3s, color .3s;
+  font-size: 1.05rem;        /* ✅ taille augmentée */
+  font-weight: 600;          /* ✅ texte plus lisible */
+  letter-spacing: 0.03em;
+  transition: background 0.3s, color 0.3s, transform 0.2s;
 }
+
+.tabs button:hover {
+  transform: scale(1.05);    /* ✅ petit zoom au survol */
+}
+
+.tabs button.active {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;          /* ✅ accentue le bouton actif */
+}
+
 .tabs button.active {
   background: var(--primary);
   color:#fff;   /* ✅ bouton actif reste bleu marine */
@@ -218,13 +232,18 @@ thead th { background:#f1f5f9; }
   flex:1;
 }
 .calendar-title h2 {
-  font-size:0.85rem;   /* encore plus petit */
-  font-weight:600;
+  font-size: 1.25rem;       /* ✅ taille augmentée */
+  font-weight: 700;         /* ✅ texte plus marqué */
+  color: var(--primary);    /* ✅ cohérent avec ton bleu principal */
+  letter-spacing: 0.02em;
 }
+
 .calendar-title p {
-  font-size:0.7rem;
-  margin-top:0.15rem;
+  font-size: 0.85rem;
+  color: #444;
+  margin-top: 0.15rem;
 }
+
 
 /* ✅ Nom de l’enfant au-dessus des boutons */
 .current-child {
@@ -1276,4 +1295,132 @@ body.install-page .sidebar.show {
   background: rgba(255,255,255,0.15);
   transform: translateX(3px);
   opacity: 1;
+}
+
+/* === PAGE D’ACCUEIL === */
+#vue-accueil {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.home-hero h2 {
+  color: var(--primary);
+  margin-bottom: 0.8rem;
+   font-size: 1.4rem;
+}
+
+.home-hero p {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+  max-width: 480px;
+  margin: 0 auto 1.8rem auto;
+}
+
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.home-actions button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  width: 80%;
+  max-width: 260px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.home-actions button:hover {
+  background: var(--secondary);
+}
+
+.home-illustration {
+  max-width: 240px;
+  width: 70%;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  opacity: 0.95;
+}
+
+.calendar-title h2::before {
+  content: "\1F4C5"; /* symbole Unicode 📅 */
+  margin-right: 0.4rem;
+  font-size: 1.2em;
+  vertical-align: middle;
+  opacity: 0.9;
+}
+
+/* === Boutons flèches calendrier (⬅ ➡) === */
+.calendar button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 1.8rem;       /* ✅ flèches agrandies */
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.3s;
+}
+
+.calendar button:hover {
+  transform: scale(1.2);   /* ✅ petit zoom au survol */
+  color: var(--secondary); /* ✅ bleu clair quand survolé */
+}
+
+.calendar button:active {
+  transform: scale(1.1);   /* ✅ léger effet au clic */
+}
+
+/* === Boutons flèches calendrier (⬅ ➡) stylisés === */
+/* === Boutons flèches calendrier (⬅ ➡) — version agrandie === */
+.calendar button {
+  background: var(--bg-light);
+  border: none;
+  color: var(--primary);
+  font-size: 2rem;                /* ✅ flèches plus grandes */
+  font-weight: bold;
+  cursor: pointer;
+  width: 50px;                    /* ✅ cercle plus large */
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.25s, background 0.3s, color 0.3s;
+}
+
+.calendar button:hover {
+  transform: scale(1.15);
+  background: var(--secondary);
+  color: #fff;
+}
+
+.calendar button:active {
+  transform: scale(1.08);
+}
+
+
+/* === Titre de la date === */
+.calendar-title h2 {
+  font-size: 1.1rem;               /* ✅ réduit légèrement pour tenir sur une ligne */
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.02em;
+  white-space: nowrap;             /* ✅ empêche le retour à la ligne */
+}
+
+/* === Icône calendrier devant la date === */
+.calendar-title h2::before {
+  content: "📅";
+  margin-right: 0.4rem;
+  font-size: 1.1em;
+  vertical-align: middle;
+  opacity: 0.9;
 }

@@ -19,8 +19,6 @@
     <h1>Daily Home Kid Challenge</h1>
   </header>
 
-  <!-- ================= SIDEBAR ================= -->
-
 <!-- ================= SIDEBAR ================= -->
 <nav class="sidebar" id="sidebar">
   <h2>Mon espace Famille</h2>
@@ -28,7 +26,7 @@
 
   <div class="sidebar-content">
     <ul class="nav-list">
-      <li onclick="showView('vue-jour')">🏠 Accueil</li>
+      <li onclick="showView('vue-accueil')">🏠 Accueil</li>
     </ul>
 
     <input id="importChildInput" type="file" accept="application/json" style="display:none" onchange="handleImportChild(event)">
@@ -67,6 +65,17 @@
   <div id="overlay"></div>
 
   <!-- ================= VUES ================= -->
+  
+<main class="view active" id="vue-accueil">
+  <section class="home-hero">
+    <h2>Bienvenue dans le Daily Home Kid Challenge 🎉</h2>
+    <p>Un jeu familial pour motiver les enfants à accomplir leurs petites missions du quotidien, 
+    suivre leurs progrès et gagner des récompenses amusantes !</p>
+    <img src="img/puzzle.png" alt="Illustration d'accueil" class="home-illustration">
+  </section>
+</main>
+
+  
   <main class="view active" id="vue-jour">
     <div class="view-header">
       <div class="calendar">
@@ -193,6 +202,7 @@
     <div class="view-header">
       <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
       <h2>📋 Gestion des tâches</h2>
+	  <p class="current-child" id="currentChild_tasks">—</p>
     </div>
     <div class="param-section">
       <div class="task-add">
@@ -210,6 +220,8 @@
     <div class="view-header">
       <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
       <h2>🎁 Récompenses</h2>
+	  <p class="current-child" id="currentChild_rewards">—</p>
+
     </div>
     <div class="param-section">
       <label for="inputRewardLow">Récompense palier 1 :</label>

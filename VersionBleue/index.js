@@ -241,16 +241,21 @@ function setWeekTitle(){
 }
 
 function setChildHeaders(){
-  const n=getChild().settings.childName||"Mon enfant";
-  const day=document.getElementById("currentChild_day");
-  const week=document.getElementById("currentChild_week");
-  const month=document.getElementById("currentChild_month");
-  if(day) day.textContent=n;
-  if(week) week.textContent=n;
-  if(month) month.textContent=n;
-  const title=document.getElementById("childTitle");
-  if(title) title.textContent="Résultats - "+n;
+  const n = getChild().settings.childName || "Mon enfant";
+  const day    = document.getElementById("currentChild_day");
+  const week   = document.getElementById("currentChild_week");
+  const month  = document.getElementById("currentChild_month");
+  const task   = document.getElementById("currentChild_tasks");
+  const reward = document.getElementById("currentChild_rewards"); // 🔹 nouveau
+  if(day) day.textContent = n;
+  if(week) week.textContent = n;
+  if(month) month.textContent = n;
+  if(task) task.textContent = n;
+  if(reward) reward.textContent = n; // 🔹 nouveau
+  const title = document.getElementById("childTitle");
+  if(title) title.textContent = "Résultats - " + n;
 }
+
 
 /* ---- Label du jour courant (affiché sous le bouton Semaine en vue Jour) ---- */
 function setCurrentDayLabel(){
@@ -673,6 +678,11 @@ function majUI(){
   // ✅ Réattacher les boutons de maintenance à chaque reconstruction
   document.getElementById("btnResetChildren")?.addEventListener("click", resetAllChildren);
   document.getElementById("btnPurgeAll")?.addEventListener("click", purgeAll);
+  // Si aucune vue active, afficher la page d’accueil par défaut
+if (!document.querySelector(".view.active")) {
+  showView("vue-accueil");
+}
+
 }
 
 /* ===== Nom & Avatar ===== */
@@ -949,6 +959,7 @@ function goBackToSidebar(){
 document.addEventListener("DOMContentLoaded",()=>{
   bootstrapIfEmpty();
   majUI();
+  showView("vue-accueil"); // ✅ vue par défaut au lancement
 
   // Vue Jour : semaine précédente/suivante
   document.getElementById("btnPrev")?.addEventListener("click",()=>changerSemaine(-1));
