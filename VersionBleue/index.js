@@ -19,7 +19,7 @@ function saveChildren(){ localStorage.setItem("children", JSON.stringify(childre
 
 /* ------------------- Init enfants ------------------- */
 function bootstrapIfEmpty(){
-	 // 🚫 Ne rien recréer si une purge totale vient d’être faite
+  // 🚫 Ne rien recréer si une purge totale vient d’être faite
   if (localStorage.getItem("purged") === "1") return;
   if(!children.length){
     children=[{
@@ -35,12 +35,14 @@ function bootstrapIfEmpty(){
         { name:"Devoirs",           weights:[1,1,1,1,1,0,0] }
       ],
       notes:{},
-      history:[]
+      history:[],
+      rewardsByWeek:{}   // ✅ placé à l’intérieur de l’objet enfant
     }];
     saveChildren();
   }
 }
 bootstrapIfEmpty();
+
 
 /* ------------------- Dates ------------------- */
 function formatDateFR(d){ return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}); }
@@ -483,43 +485,63 @@ function sauverNotes(){
 let historyChart=null;
 
 function calculer(){
-  const child=getChild(); 
-  const key=getWeekKey(); 
+  const child = getChild(); 
+  const key = getWeekKey(); 
   ensureNotesForWeek(child,key);
-  const notes=child.notes[key]||[]; 
-  let total=0,done=0;
+  const notes = child.notes[key] || []; 
+  let total = 0, done = 0;
 
-  (child.tasks||[]).forEach((t,i)=>{
-    (notes[i]||[]).forEach((val=0)=>{ 
-      total+=1;         // chaque case vaut 1 point max
-      done+=parseFloat(val)||0; 
+  (child.tasks || []).forEach((t,i)=>{
+    (notes[i] || []).forEach((val=0)=>{ 
+      total += 1;         
+      done += parseFloat(val) || 0; 
     });
   });
 
-  const pct=total?(done/total*100):0;
+  const pct = total ? (done/total*100) : 0;
 
-  const res=document.getElementById("resultat"); 
-  if(res) res.textContent=`✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
-  const pb=document.getElementById("progressBar"); 
-  if(pb) pb.style.width=Math.min(100,Math.max(0,pct))+"%";
+  const res = document.getElementById("resultat"); 
+  if(res) res.textContent = `✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
+  const pb = document.getElementById("progressBar"); 
+  if(pb) pb.style.width = Math.min(100,Math.max(0,pct)) + "%";
 
-  const week=getWeekKey(); 
-  child.history=child.history||[];
-  let reward="❌ Aucune récompense", palier="-";
-  if(pct >= (child.settings.thresholdHigh||50) && child.settings.rewardHigh){
-    reward=`🏆 ${child.settings.rewardHigh}`; palier="Palier 2";
-  }else if(pct >= (child.settings.thresholdLow||30) && child.settings.rewardLow){
-    reward=`🎁 ${child.settings.rewardLow}`; palier="Palier 1";
+// ✅ Support multi-paliers par semaine
+const week = getWeekKey();
+let reward = "❌ Aucune récompense", palier = "-";
+const customRewards = child.rewardsByWeek?.[week];
+
+if (Array.isArray(customRewards) && customRewards.length > 0) {
+  // concatène tous les paliers en texte
+  reward = customRewards.map(r => r.reward).join(" + ");
+  palier = customRewards.map(r => r.palier).join(", ");
+} else {
+  if (pct >= (child.settings.thresholdHigh || 50) && child.settings.rewardHigh) {
+    reward = `🏆 ${child.settings.rewardHigh}`;
+    palier = "Palier 2";
+  } else if (pct >= (child.settings.thresholdLow || 30) && child.settings.rewardLow) {
+    reward = `🎁 ${child.settings.rewardLow}`;
+    palier = "Palier 1";
   }
-  const existing=child.history.find(h=>h.week===week);
-  if(existing){ existing.pct=pct.toFixed(1); existing.reward=reward; existing.palier=palier; }
-  else{ child.history.push({week, pct:pct.toFixed(1), reward, palier}); }
+}
+
+
+  // ⚙️ suite inchangée
+  child.history = child.history || [];
+  const existing = child.history.find(h => h.week === week);
+  if(existing){
+    existing.pct = pct.toFixed(1); 
+    existing.reward = reward; 
+    existing.palier = palier;
+  } else {
+    child.history.push({ week, pct:pct.toFixed(1), reward, palier });
+  }
   saveChildren();
 
   majPuzzle(total,done);
   afficherHistorique();
   setChildHeaders();
 }
+
 
 function afficherHistorique(){
   const body=document.getElementById("historiqueBody"); if(!body) return;
@@ -869,53 +891,6 @@ function moveTask(i,dir){
   renderTaskList();
 }
 
-/* ===== Gestion des récompenses ===== */
-
-/* ===== Gestion des récompenses (auto-save) ===== */
-function openRewardsManager(i){
-  selectChild(i);
-  const c = getChild();
-
-  const rLow = document.getElementById("inputRewardLow");
-  const rHigh = document.getElementById("inputRewardHigh");
-  const tLow = document.getElementById("inputThresholdLow");
-  const tHigh = document.getElementById("inputThresholdHigh");
-
-  if (rLow) {
-    rLow.value = c.settings.rewardLow || "";
-    rLow.oninput = () => {
-      c.settings.rewardLow = rLow.value.trim();
-      saveChildren();
-    };
-  }
-
-  if (rHigh) {
-    rHigh.value = c.settings.rewardHigh || "";
-    rHigh.oninput = () => {
-      c.settings.rewardHigh = rHigh.value.trim();
-      saveChildren();
-    };
-  }
-
-  if (tLow) {
-    tLow.value = c.settings.thresholdLow || 30;
-    tLow.oninput = () => {
-      c.settings.thresholdLow = Number(tLow.value) || 30;
-      saveChildren();
-    };
-  }
-
-  if (tHigh) {
-    tHigh.value = c.settings.thresholdHigh || 50;
-    tHigh.oninput = () => {
-      c.settings.thresholdHigh = Number(tHigh.value) || 50;
-      saveChildren();
-    };
-  }
-
-  showView("vue-recompenses");
-}
-
 /* Le bouton manuel n’est plus nécessaire, mais tu peux le garder sans effet */
 function saveRewards(){
   alert("💾 Sauvegarde automatique déjà activée !");
@@ -953,6 +928,172 @@ function goBackToSidebar(){
 
   // ✅ Réouvrir la sidebar (comme avant)
   openMenu();
+}
+
+/* ===== Récompenses personnalisées par semaine ===== */
+/* ================= Récompenses personnalisées ================= */
+
+function addWeeklyReward() {
+  const child = getChild();
+  const week = document.getElementById("customWeek")?.value.trim();
+  const reward = document.getElementById("customReward")?.value.trim();
+  const palier = document.getElementById("customPalier")?.value;
+
+  if (!week || !reward) {
+    alert("Veuillez saisir la semaine et la récompense.");
+    return;
+  }
+
+  // ✅ Initialiser la structure si inexistante
+  if (!child.rewardsByWeek) child.rewardsByWeek = {};
+
+  // ✅ Si la semaine n’existe pas encore, créer un tableau
+  if (!Array.isArray(child.rewardsByWeek[week])) {
+    child.rewardsByWeek[week] = [];
+  }
+
+  // ✅ Empêche le doublon exact (même semaine + même palier + même texte)
+  const alreadyExists = child.rewardsByWeek[week].some(
+    r => r.reward === reward && r.palier === palier
+  );
+  if (alreadyExists) {
+    alert("Cette récompense existe déjà pour cette semaine et ce palier.");
+    return;
+  }
+
+  // ✅ Ajout de la récompense dans le tableau
+  child.rewardsByWeek[week].push({ reward, palier });
+
+  saveChildren();
+  majTableCustomRewards();
+  document.getElementById("customReward").value = "";
+}
+
+/* === Affichage du tableau de récompenses personnalisées === */
+function majTableCustomRewards() {
+  const child = getChild();
+  const tbody = document.querySelector("#customRewardsTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  for (const [week, rewards] of Object.entries(child.rewardsByWeek || {})) {
+    rewards.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${week}</td>
+        <td>${r.reward}</td>
+        <td>${r.palier || "-"}</td>
+        <td><button onclick="deleteWeeklyReward('${week}', ${idx})">❌</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+/* === Suppression === */
+function deleteWeeklyReward(week, idx) {
+  const child = getChild();
+  if (!child.rewardsByWeek?.[week]) return;
+  child.rewardsByWeek[week].splice(idx, 1);
+  if (child.rewardsByWeek[week].length === 0) delete child.rewardsByWeek[week];
+  saveChildren();
+  majTableCustomRewards();
+}
+
+/* === Sauvegarde / affichage au chargement === */
+function openRewardsManager(i) {
+  selectChild(i);
+  showView("vue-recompenses");
+  majTableCustomRewards();
+    // 🔹 Rattacher la sauvegarde automatique des seuils et récompenses de base
+  const c = getChild();
+
+  const inputRewardLow  = document.getElementById("inputRewardLow");
+  const inputRewardHigh = document.getElementById("inputRewardHigh");
+  const inputThresholdLow  = document.getElementById("inputThresholdLow");
+  const inputThresholdHigh = document.getElementById("inputThresholdHigh");
+
+  if (inputRewardLow) {
+    inputRewardLow.value = c.settings.rewardLow || "";
+    inputRewardLow.oninput = () => {
+      c.settings.rewardLow = inputRewardLow.value.trim();
+      saveChildren();
+    };
+  }
+
+  if (inputRewardHigh) {
+    inputRewardHigh.value = c.settings.rewardHigh || "";
+    inputRewardHigh.oninput = () => {
+      c.settings.rewardHigh = inputRewardHigh.value.trim();
+      saveChildren();
+    };
+  }
+
+  if (inputThresholdLow) {
+    inputThresholdLow.value = c.settings.thresholdLow || 30;
+    inputThresholdLow.oninput = () => {
+      c.settings.thresholdLow = parseFloat(inputThresholdLow.value) || 0;
+      saveChildren();
+    };
+  }
+
+  if (inputThresholdHigh) {
+    inputThresholdHigh.value = c.settings.thresholdHigh || 50;
+    inputThresholdHigh.oninput = () => {
+      c.settings.thresholdHigh = parseFloat(inputThresholdHigh.value) || 0;
+      saveChildren();
+    };
+  }
+updateRewardSummary();
+}
+
+function updateRewardSummary() {
+  const c = getChild();
+
+  const input1 = document.getElementById("summaryThreshold1");
+  const input2 = document.getElementById("summaryThreshold2");
+  const reward1 = document.getElementById("summaryReward1");
+  const reward2 = document.getElementById("summaryReward2");
+
+  // Initialisation des valeurs
+  input1.value = c.settings.thresholdLow || 0;
+  input2.value = c.settings.thresholdHigh || 0;
+  reward1.value = c.settings.rewardLow || "";
+  reward2.value = c.settings.rewardHigh || "";
+
+  // Sauvegarde automatique à la saisie
+  input1.oninput = () => { c.settings.thresholdLow = parseFloat(input1.value) || 0; saveChildren(); };
+  input2.oninput = () => { c.settings.thresholdHigh = parseFloat(input2.value) || 0; saveChildren(); };
+  reward1.oninput = () => { c.settings.rewardLow = reward1.value.trim(); saveChildren(); };
+  reward2.oninput = () => { c.settings.rewardHigh = reward2.value.trim(); saveChildren(); };
+}
+
+
+function renderCustomRewards() {
+  const c = getChild();
+  const tbody = document.querySelector("#customRewardsTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const rewards = c.rewardsByWeek || {};
+  for (const [week, data] of Object.entries(rewards)) {
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${week}</td>
+        <td>${data.reward}</td>
+        <td>${data.palier}</td>
+        <td><button onclick="deleteWeeklyReward('${week}')">🗑️</button></td>
+      </tr>
+    `);
+  }
+}
+
+function showToast(message, color = "var(--primary)") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.background = color;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
 
@@ -998,3 +1139,6 @@ window.importExample = importExample;
 window.addChild = addChild;
 window.resetAllChildren = resetAllChildren;
 window.purgeAll = purgeAll;
+window.addWeeklyReward = addWeeklyReward;
+window.renderCustomRewards = renderCustomRewards;
+window.deleteWeeklyReward = deleteWeeklyReward;

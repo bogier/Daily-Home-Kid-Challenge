@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="stylesheet" href="style.css?v=3.5"/>
+  <link rel="stylesheet" href="style.css?v=3.6"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="puzzle-utils.js"></script>
 </head>
@@ -223,24 +223,61 @@
 	  <p class="current-child" id="currentChild_rewards">—</p>
 
     </div>
-    <div class="param-section">
-      <label for="inputRewardLow">Récompense palier 1 :</label>
-      <input type="text" id="inputRewardLow" placeholder="Ex: Choisir un dessin animé">
-      <label for="inputThresholdLow">Seuil (%) palier 1 :</label>
-      <input type="number" id="inputThresholdLow" min="0" max="100" step="1">
-      <label for="inputRewardHigh">Récompense palier 2 :</label>
-      <input type="text" id="inputRewardHigh" placeholder="Ex: Sortie au parc">
-      <label for="inputThresholdHigh">Seuil (%) palier 2 :</label>
-      <input type="number" id="inputThresholdHigh" min="0" max="100" step="1">
-    </div>
+   
+<!-- 🔹 Paliers modifiables directement -->
+<div class="reward-summary editable">
+  <div class="reward-box">
+    <h4>Palier 1</h4>
+    <label>Seuil (%) :</label>
+    <input type="number" id="summaryThreshold1" min="0" max="100" step="1">
+    <label>Récompense :</label>
+    <input type="text" id="summaryReward1" placeholder="Ex : Choisir un dessin animé">
+  </div>
+  <div class="reward-box">
+    <h4>Palier 2</h4>
+    <label>Seuil (%) :</label>
+    <input type="number" id="summaryThreshold2" min="0" max="100" step="1">
+    <label>Récompense :</label>
+    <input type="text" id="summaryReward2" placeholder="Ex : Sortie au parc">
+  </div>
+</div>
+
+
+	<!-- 🔹 Récompenses personnalisées -->
+<div class="param-section">
+  <h5>🎯 Récompenses personnalisées par semaine</h5>
+  <label for="customWeek">Semaine (numéro-année) :</label>
+  <input type="text" id="customWeek" placeholder="Ex : 42-2025">
+
+  <label for="customReward">Récompense :</label>
+  <input type="text" id="customReward" placeholder="Ex : Sortie cinéma">
+
+  <label for="customPalier">Palier :</label>
+  <select id="customPalier">
+    <option value="Palier 1">Palier 1</option>
+    <option value="Palier 2">Palier 2</option>
+    <option value="-">Autre</option>
+  </select>
+
+  <button class="save" onclick="addWeeklyReward()">➕ Ajouter</button>
+</div>
+
+<table id="customRewardsTable">
+  <thead>
+    <tr><th>Semaine</th><th>Récompense</th><th>Palier</th><th></th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
     <div class="param-actions">
       <button onclick="majUI()">❌ Annuler</button>
       <button class="save" onclick="saveRewards()">💾 Enregistrer</button>
     </div>
+	<div id="toast" class="toast"></div>
   </main>
 
   <!-- ================= JS ================= -->
-  <script src="index.js?v=3.6"></script>
+  <script src="index.js?v=3.7"></script>
 
 <!-- ✅ Vérification simple sans double attachement -->
 <script>
