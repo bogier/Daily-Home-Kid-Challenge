@@ -84,13 +84,16 @@
         <button id="btnNext">&gt;</button>
       </div>
 
-      <p class="current-child" id="currentChild_day">—</p>
+<div class="child-and-day">
+  <p class="current-child" id="currentChild_day">—</p>
+  <span class="day-label" id="currentDayLabel">—</span>
+</div>
 
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab(this,'vue-jour')">Jour</button>
-        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
-        <div class="day-label" id="currentDayLabel">—</div>
-      </div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab(this,'vue-jour')">Jour</button>
+  <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
+</div>
+
     </div>
     <div class="table-wrapper">
       <table>
@@ -105,6 +108,11 @@
   <div class="radial" id="radial-semaine"></div>
   <div class="radial" id="radial-mois"></div>
 </div>
+
+<!-- ===== Récompenses (SEMAINE) ===== -->
+<div id="rewardBannerW1" class="reward-banner hidden" aria-live="polite"></div>
+<div id="rewardBannerW2" class="reward-banner hidden" aria-live="polite"></div>
+
 <!-- ===== / Indicateurs ===== -->
 	
   </main>

@@ -55,7 +55,17 @@ let currentDate=new Date();
 function getWeekData(){ const m=getMonday(currentDate),s=getSunday(m); return {num:getWeekNumber(m),annee:m.getFullYear(),lundi:formatDateFR(m),dim:formatDateFR(s), m,s}; }
 function getWeekKey(){ const w=getWeekData(); return `${w.num}-${w.annee}`; }
 function getCurrentWeekKey(){ const today=new Date(); return `${getWeekNumber(today)}-${today.getFullYear()}`; }
-function changerSemaine(delta){ currentDate.setDate(currentDate.getDate()+delta*7); majUI(); }
+
+function syncCustomWeekIfVisible(){
+  const pane = document.getElementById("vue-recompenses");
+  const input = document.getElementById("customWeek");
+  if (pane && pane.classList.contains("active") && input) {
+    input.value = getWeekKey();
+  }
+}
+
+
+function changerSemaine(delta){ currentDate.setDate(currentDate.getDate()+delta*7); majUI(); syncCustomWeekIfVisible(); }
 
 /* ================= Sidebar & Gestion enfants ================= */
 
@@ -95,11 +105,15 @@ function rebuildSidebar(){
 
 /* ---- CRUD enfants ---- */
 function selectChild(i){ currentChild=i; saveChildren(); majUI(); }
+
 function addChild(){
   // Création rapide d’un enfant vide
   const newChild = {
     settings:{
-      childName:"",    // nom vide au départ
+      childName:"",
+      avatar:null,
+      age:null,
+      gender:"non-defini",
       rewardLow:"",
       rewardHigh:"",
       thresholdLow:30,
@@ -107,7 +121,8 @@ function addChild(){
     },
     tasks:[],
     notes:{},
-    history:[]
+    history:[],
+    rewardsByWeek:{}   // ✅ structure pour récompenses personnalisées
   };
 
   // Ajout et sélection
@@ -438,6 +453,68 @@ function sauverNotes(){
 
 let historyChart=null;
 
+/**
+ * Renvoie les seuils (globaux) et les récompenses (overridables par semaine)
+ * pour la SEMAINE courante.
+ */
+function getWeeklyPaliersConfig(child, weekKey){
+  const t1 = Number(child?.settings?.thresholdLow  ?? 30);
+  const t2 = Number(child?.settings?.thresholdHigh ?? 50);
+
+  // Par défaut : récompenses globales
+  let r1 = child?.settings?.rewardLow  || "";
+  let r2 = child?.settings?.rewardHigh || "";
+
+  // Normalisation libellé palier
+  const tag = (s) => String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g,""); // "Palier 1" -> "palier1"
+
+  // Overrides semaine (prioritaires)
+  const arr = child?.rewardsByWeek?.[weekKey];
+  if (Array.isArray(arr) && arr.length){
+    for (const r of arr){
+      const p = tag(r.palier);
+      if ((p === "1" || p === "p1" || p === "palier1") && r?.reward) r1 = r.reward;
+      if ((p === "2" || p === "p2" || p === "palier2") && r?.reward) r2 = r.reward;
+    }
+  }
+  return { t1, r1, t2, r2 };
+}
+
+
+
+
+
+/**
+ * Met à jour l’affichage des 2 bandeaux “semaine”.
+ * - Affiche Palier 1 si pctWeek ≥ t1 ET r1 non vide
+ * - Affiche Palier 2 si pctWeek ≥ t2 ET r2 non vide
+ */
+function updateWeeklyRewardBanners(pctWeek, cfg){
+  const b1 = document.getElementById('rewardBannerW1');
+  const b2 = document.getElementById('rewardBannerW2');
+
+  if (b1){ b1.className = 'reward-banner hidden'; b1.innerHTML = ''; }
+  if (b2){ b2.className = 'reward-banner hidden'; b2.innerHTML = ''; }
+
+  const show1 = (pctWeek >= cfg.t1) && !!cfg.r1?.trim();
+  const show2 = (pctWeek >= cfg.t2) && !!cfg.r2?.trim();
+
+  if (show1 && b1){
+    b1.innerHTML = `🎉 <span class="badge">Palier 1</span> ${cfg.r1} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
+    b1.classList.remove('hidden'); b1.classList.add('palier-1','pop');
+    setTimeout(()=> b1.classList.remove('pop'), 300);
+  }
+  if (show2 && b2){
+    b2.innerHTML = `🏆 <span class="badge">Palier 2</span> ${cfg.r2} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
+    b2.classList.remove('hidden'); b2.classList.add('palier-2','pop');
+    setTimeout(()=> b2.classList.remove('pop'), 300);
+  }
+}
+
+
 function calculer(){
   const child = getChild(); 
   const key = getWeekKey(); 
@@ -497,12 +574,16 @@ if (Array.isArray(customRewards) && customRewards.length > 0) {
     child.history.push({ week, pct:pct.toFixed(1), reward, palier });
   }
   saveChildren();
+  
+// ➕ MAJ bandeaux RECOMPENSE (SEMAINE) — basé sur % de la SEMAINE
+const weekKey = getWeekKey();
+const cfg = getWeeklyPaliersConfig(child, weekKey);
+updateWeeklyRewardBanners(pct, cfg);
 
   majPuzzle(total,done);
   afficherHistorique();
   setChildHeaders();
 }
-
 
 
 function majAvancementJournee() {
@@ -827,6 +908,7 @@ function majUI(){
   majVueMois();
   calculer();
   renderRadials();
+  syncCustomWeekIfVisible();
 
   
   // ✅ Réattacher les boutons de maintenance à chaque reconstruction
@@ -1076,25 +1158,54 @@ function addWeeklyReward() {
     return;
   }
 
-  // ✅ Initialiser la structure si inexistante
-  if (!child.rewardsByWeek) child.rewardsByWeek = {};
+  // 🔁 Toujours enregistrer sur la semaine affichée (pas sur la saisie)
+  const weekKey = getWeekKey();
 
-  // ✅ Si la semaine n’existe pas encore, créer un tableau
-  if (!Array.isArray(child.rewardsByWeek[week])) {
-    child.rewardsByWeek[week] = [];
+  // Palier normalisé (tolère 1 / p1 / palier1 / Palier 1)
+  const normPalier = (p) => {
+    const x = String(p || "").toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "");
+    if (x === "1" || x === "p1" || x === "palier1") return "Palier 1";
+    if (x === "2" || x === "p2" || x === "palier2") return "Palier 2";
+    return "Palier 1";
+  };
+  const palNorm = normPalier(palier);
+
+  if (!child.rewardsByWeek) child.rewardsByWeek = {};
+  if (!Array.isArray(child.rewardsByWeek[weekKey])) {
+    child.rewardsByWeek[weekKey] = [];
   }
 
-  // ✅ Empêche le doublon exact (même semaine + même palier + même texte)
-  const alreadyExists = child.rewardsByWeek[week].some(
-    r => r.reward === reward && r.palier === palier
+  // Empêche doublon exact pour cette semaine/palier
+  const exists = child.rewardsByWeek[weekKey].some(
+    r => r.palier === palNorm && r.reward === reward
   );
-  if (alreadyExists) {
+  if (exists) {
     alert("Cette récompense existe déjà pour cette semaine et ce palier.");
     return;
   }
 
-  // ✅ Ajout de la récompense dans le tableau
-  child.rewardsByWeek[week].push({ reward, palier });
+  child.rewardsByWeek[weekKey].push({ reward, palier: palNorm });
+  saveChildren();
+  majTableCustomRewards();
+
+  // ➜ rafraîchir immédiatement la vue Jour (bandeaux)
+  calculer();
+
+  const input = document.getElementById("customReward");
+  if (input) input.value = "";
+
+
+
+  saveChildren();
+  majTableCustomRewards();
+
+  // 🟢 Recalcule tout de suite pour mettre à jour les bandeaux en vue Jour
+  calculer();
+
+  document.getElementById("customReward").value = "";
+
 
   saveChildren();
   majTableCustomRewards();
@@ -1130,12 +1241,24 @@ function deleteWeeklyReward(week, idx) {
   if (child.rewardsByWeek[week].length === 0) delete child.rewardsByWeek[week];
   saveChildren();
   majTableCustomRewards();
+  calculer(); // met à jour les bandeaux tout de suite
 }
 
 /* === Sauvegarde / affichage au chargement === */
 function openRewardsManager(i) {
   selectChild(i);
   showView("vue-recompenses");
+  
+// 🔒 Le champ "Semaine" est toujours la semaine affichée
+const weekInput = document.getElementById("customWeek");
+if (weekInput) {
+  const wk = getWeekKey();          // ex. "44-2025"
+  weekInput.value = wk;
+  weekInput.placeholder = wk;       // visible même si disabled
+  weekInput.readOnly = true;
+  weekInput.disabled = true;
+}
+
   majTableCustomRewards();
     // 🔹 Rattacher la sauvegarde automatique des seuils et récompenses de base
   const c = getChild();

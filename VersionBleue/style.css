@@ -1637,3 +1637,65 @@ body.install-page .sidebar.show {
     gap: 10px;
   }
 }
+/* ===== Bandeau Récompense (vue Jour) ===== */
+.reward-banner{
+  margin: 8px auto 0;
+  max-width: 520px;
+  background: #fff;
+  border: 2px dashed var(--secondary);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--primary);
+  transform: scale(1);
+  transition: transform .25s ease, opacity .25s ease;
+}
+.reward-banner.hidden{ display:none; opacity:0; }
+.reward-banner .badge{
+  display:inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e8f5e9;         /* vert clair */
+  border:1px solid #b4dfb9;
+  margin-right: 6px;
+  font-weight: 800;
+}
+.reward-banner.palier-1 .badge{ background:#fff4e5; border-color:#ffd6a8; } /* orange clair */
+.reward-banner.palier-2 .badge{ background:#e8f5e9; border-color:#b4dfb9; } /* vert clair */
+.reward-banner .text{ font-weight: 700; }
+.reward-banner.pop{ transform: scale(1.03); }
+
+/* Ligne "Enfant + Jour" : sur une seule ligne, centrée */
+.child-and-day{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  margin:.2rem 0 .4rem;
+}
+
+/* Le libellé du jour n’a plus besoin d’un gros décalage gauche */
+.day-label{
+  font-size:0.9rem;
+  font-weight:600;
+  color: var(--primary);
+  text-transform:capitalize;
+  margin-left:0;          /* <— était ~.6rem avant */
+}
+
+/* Onglets centrés de façon stricte et toujours sur une ligne */
+.view-header .tabs{
+  display:flex;
+  gap:.4rem;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:nowrap;        /* évite le retour à la ligne des boutons */
+}
+
+/* Optionnel : même largeur pour les deux onglets pour un centrage visuel parfait */
+.view-header .tabs .tab{
+  min-width: 84px;
+  text-align:center;
+}
