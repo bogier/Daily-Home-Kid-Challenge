@@ -88,7 +88,6 @@
 
       <div class="tabs">
         <button class="tab active" onclick="switchTab(this,'vue-jour')">Jour</button>
-        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
         <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
         <div class="day-label" id="currentDayLabel">—</div>
       </div>
@@ -99,30 +98,15 @@
         <tbody></tbody>
       </table>
     </div>
-  </main>
 
-  <main class="view" id="vue-semaine">
-    <div class="view-header">
-      <div class="calendar">
-        <button id="btnPrevWeek">&lt;</button>
-        <div class="calendar-title"><h2 id="weekTitle_week">Semaine</h2></div>
-        <button id="btnNextWeek">&gt;</button>
-      </div>
-      <p class="current-child" id="currentChild_week">—</p>
-      <div class="tabs">
-        <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
-        <button class="tab active" onclick="switchTab(this,'vue-semaine')">Semaine</button>
-        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
-      </div>
-    </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr><th>Tâches</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+<!-- ===== Indicateurs d'avancement (Jour + Semaine + Mois) ===== -->
+<div class="radial-trio">
+  <div class="radial" id="radial-jour"></div>
+  <div class="radial" id="radial-semaine"></div>
+  <div class="radial" id="radial-mois"></div>
+</div>
+<!-- ===== / Indicateurs ===== -->
+	
   </main>
 
   <main class="view" id="vue-mois">
@@ -135,7 +119,6 @@
       <p class="current-child" id="currentChild_month">—</p>
       <div class="tabs">
         <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
-        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
         <button class="tab active" onclick="switchTab(this,'vue-mois')">Mois</button>
       </div>
     </div>

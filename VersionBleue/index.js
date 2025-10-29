@@ -236,8 +236,6 @@ function setWeekTitle(){
   const fmt=d=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long'});
   const weekTitle=document.getElementById("weekTitle");
   if(weekTitle) weekTitle.textContent=`${fmt(m)} – ${fmt(s)}`;
-  const weekTitleWeek=document.getElementById("weekTitle_week");
-  if(weekTitleWeek) weekTitleWeek.textContent=`Semaine ${getWeekNumber(m)} • ${m.getFullYear()}`;
   const monthTitle=document.getElementById("monthTitle");
   if(monthTitle) monthTitle.textContent=monthLabel(new Date(currentDate.getFullYear(), currentDate.getMonth(),1));
 }
@@ -245,12 +243,10 @@ function setWeekTitle(){
 function setChildHeaders(){
   const n = getChild().settings.childName || "Mon enfant";
   const day    = document.getElementById("currentChild_day");
-  const week   = document.getElementById("currentChild_week");
   const month  = document.getElementById("currentChild_month");
   const task   = document.getElementById("currentChild_tasks");
   const reward = document.getElementById("currentChild_rewards"); // 🔹 nouveau
   if(day) day.textContent = n;
-  if(week) week.textContent = n;
   if(month) month.textContent = n;
   if(task) task.textContent = n;
   if(reward) reward.textContent = n; // 🔹 nouveau
@@ -344,50 +340,6 @@ function majLabelGroup(groupName){
   if(checked) checked.nextElementSibling.style.opacity = "1"; // celui choisi est bien visible
 }
 
-function majVueSemaine(){
-  const tbody=document.querySelector("#vue-semaine table tbody"); 
-  if(!tbody) return;
-  tbody.innerHTML="";
-  const child=getChild(); 
-  const key=getWeekKey(); 
-  ensureNotesForWeek(child,key);
-
-  if(!child.tasks.length){
-    tbody.innerHTML=`<tr><td colspan="8">⚠️ Aucune tâche définie</td></tr>`; 
-    return;
-  }
-
-  child.tasks.forEach((t,i)=>{
-    let row=`<tr><td>${t.name}</td>`;
-    days.forEach((_,d)=>{
-      const val = child.notes[key]?.[i]?.[d] ?? 0;
-      const disable=(key!==getCurrentWeekKey())?"disabled":"";
-      const name = `t${i}d${d}`;
-      row+=`
-        <td class="rating-cell">
-          <input type="radio" id="${name}v0" name="${name}" data-task="${i}" data-day="${d}" value="0" ${val==0?'checked':''} ${disable}>
-          <label for="${name}v0">❌</label>
-          <input type="radio" id="${name}v05" name="${name}" data-task="${i}" data-day="${d}" value="0.5" ${val==0.5?'checked':''} ${disable}>
-          <label for="${name}v05">⚠️</label>
-          <input type="radio" id="${name}v1" name="${name}" data-task="${i}" data-day="${d}" value="1" ${val==1?'checked':''} ${disable}>
-          <label for="${name}v1">✅</label>
-        </td>`;
-    });
-    row+="</tr>";
-    tbody.insertAdjacentHTML("beforeend",row);
-  });
-
-  // Écouteurs
-  tbody.querySelectorAll("input[type=radio]").forEach(r=>{
-    r.addEventListener("change",()=>{
-      sauverNotes(); 
-      calculer();
-      appliquerStyleRadio(r);   // applique style au clic
-    });
-    appliquerStyleRadio(r);     // applique style dès le rendu
-  });
-}
-
 function majVueMois(){
   const cal=document.querySelector("#vue-mois .calendar-month"); 
   if(!cal) return;
@@ -477,6 +429,8 @@ function sauverNotes(){
 
   // 🔹 Réafficher la vue jour immédiatement
   majVueJour();
+  majAvancementJournee();
+  renderRadials();
   calculer();
 }
 
@@ -504,6 +458,13 @@ function calculer(){
   if(res) res.textContent = `✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
   const pb = document.getElementById("progressBar"); 
   if(pb) pb.style.width = Math.min(100,Math.max(0,pct)) + "%";
+  
+  // ✅ Répéter l’affichage pour la vue Jour si présente
+const resJour = document.getElementById("resultatJour");
+if (resJour) resJour.textContent = `✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
+const pbJour = document.getElementById("progressBarJour");
+if (pbJour) pbJour.style.width = Math.min(100, Math.max(0, pct)) + "%";
+
 
 // ✅ Support multi-paliers par semaine
 const week = getWeekKey();
@@ -541,6 +502,179 @@ if (Array.isArray(customRewards) && customRewards.length > 0) {
   afficherHistorique();
   setChildHeaders();
 }
+
+
+
+function majAvancementJournee() {
+  const pct = computeDailyProgressFromData();
+  const bar = document.getElementById('progressBarJournee');
+  const label = document.getElementById('resultatJournee');
+  if (bar) bar.style.width = pct + '%';
+  if (label) label.textContent = pct + '%';
+}
+
+// Calcule l'avancement du jour en lisant les données (0/1/2) pour le dayIdx courant.
+// Hypothèse: notes[weekKey][taskIdx][dayIdx][childIdx] ∈ {0,1,2}
+function computeDailyProgressFromData() {
+  try {
+    const child = getChild();
+    const weekKey = getWeekKey();
+    ensureNotesForWeek(child, weekKey);
+
+    const d = new Date(currentDate);
+    const dayIdx = (d.getDay() === 0) ? 6 : (d.getDay() - 1);
+
+    let total = 0, sum = 0;
+    (child.tasks || []).forEach((t, i) => {
+      const val = child.notes[weekKey]?.[i]?.[dayIdx];
+      if (val !== undefined && val !== null) {
+        total += 1;
+        sum += parseFloat(val) || 0;
+      }
+    });
+
+    if (total === 0) return 0;
+    return Math.round((sum / total) * 100);
+  } catch {
+    return 0;
+  }
+}
+
+
+function initDailyProgressListeners() {
+  const container = document.getElementById('vue-jour');
+  if (!container) return;
+  container.addEventListener('change', (e) => {
+    if (e.target && e.target.matches('input[type="radio"]')) {
+      // Laisse d'abord ton handler existant sauvegarder la valeur, puis recalcule
+      setTimeout(majAvancementJournee, 0);
+    }
+  });
+}
+
+/* ====== Radials (SVG segmentés) ====== */
+function polarToCartesian(cx, cy, r, angleDeg){
+  const rad = (angleDeg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function describeArc(cx, cy, r, startAngle, endAngle){
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+}
+
+/* Retourne le % semaine (sans effets de bord) */
+function computeWeekProgress(){
+  const child = getChild();
+  const key = getWeekKey();
+  ensureNotesForWeek(child, key);
+  let total = 0, done = 0;
+  (child.tasks || []).forEach((t,i)=>{
+    (child.notes[key]?.[i] || []).forEach(v => { total += 1; done += parseFloat(v)||0; });
+  });
+  return total ? Math.round(done/total*100) : 0;
+}
+
+/* Retourne le % mois courant */
+function computeMonthProgress(){
+  const child = getChild();
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const last = new Date(year, month+1, 0).getDate();
+  let total = 0, done = 0;
+
+  for(let d=1; d<=last; d++){
+    const date = new Date(year, month, d);
+    const dayIdx = (date.getDay() === 0) ? 6 : (date.getDay() - 1);
+    const weekKey = `${getWeekNumber(date)}-${date.getFullYear()}`;
+    ensureNotesForWeek(child, weekKey);
+    (child.tasks || []).forEach((t,i)=>{
+      const v = child.notes[weekKey]?.[i]?.[dayIdx];
+      if(v !== undefined){
+        total += 1;
+        done += parseFloat(v)||0;
+      }
+    });
+  }
+  return total ? Math.round(done/total*100) : 0;
+}
+
+/* Dessine une jauge segmentée type "donut" avec 12 segments */
+function drawRadial(containerId, percent, strokeColor, label){
+  const host = document.getElementById(containerId);
+  if(!host) return;
+  host.innerHTML = "";
+
+  const size = 140;
+  const cx = size/2, cy = size/2;
+  const outerR = 64;     // anneau externe gris
+  const r = 56;          // rayon des segments
+  const segments = 12;   // nbre de “parts”
+  const gapDeg = 6;      // écart visuel entre parts
+  const partDeg = 360/segments;
+  const fillParts = Math.floor((percent/100) * segments);
+
+  // SVG
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+
+  // anneau gris externe
+  const outer = document.createElementNS(svg.namespaceURI, "circle");
+  outer.setAttribute("class", "outer-ring");
+  outer.setAttribute("cx", cx);
+  outer.setAttribute("cy", cy);
+  outer.setAttribute("r", outerR);
+  svg.appendChild(outer);
+
+  // segments de fond (gris)
+  for(let i=0;i<segments;i++){
+    const start = i*partDeg + gapDeg/2;
+    const end   = (i+1)*partDeg - gapDeg/2;
+    const p = document.createElementNS(svg.namespaceURI, "path");
+    p.setAttribute("d", describeArc(cx, cy, r, start, end));
+    p.setAttribute("class", "seg-bg");
+    svg.appendChild(p);
+  }
+
+  // segments colorés (jusqu’au floor du %)
+  for(let i=0;i<fillParts;i++){
+    const start = i*partDeg + gapDeg/2;
+    const end   = (i+1)*partDeg - gapDeg/2;
+    const p = document.createElementNS(svg.namespaceURI, "path");
+    p.setAttribute("d", describeArc(cx, cy, r, start, end));
+    p.setAttribute("class", "seg-fill");
+    p.setAttribute("stroke", strokeColor);
+    svg.appendChild(p);
+  }
+
+  host.appendChild(svg);
+
+  // pastille centrale (valeur + libellé)
+  const center = document.createElement("div");
+  center.className = "center";
+  center.innerHTML = `
+    <div class="badge">
+      <div class="pct">${percent}%</div>
+      <div class="lbl">${label}</div>
+    </div>`;
+  host.appendChild(center);
+}
+
+/* Met à jour les 3 jauges */
+function renderRadials(){
+  const pctDay  = computeDailyProgressFromData();
+  const pctWeek = computeWeekProgress();
+  const pctMonth= computeMonthProgress();
+
+  const css = getComputedStyle(document.documentElement);
+
+  drawRadial("radial-jour",    pctDay,  css.getPropertyValue("--color-jour").trim()    || "#1e63d1", "jour");
+  drawRadial("radial-semaine", pctWeek, css.getPropertyValue("--color-semaine").trim() || "#2ecc71", "semaine");
+  drawRadial("radial-mois",    pctMonth,css.getPropertyValue("--color-mois").trim()    || "#8e44ad", "mois");
+}
+
 
 
 function afficherHistorique(){
@@ -660,10 +794,6 @@ function showView(id){
     document.querySelectorAll('.tabs button').forEach(btn=>{
       if(btn.textContent.trim() === "Jour") btn.classList.add("active");
     });
-  } else if(id === "vue-semaine") {
-    document.querySelectorAll('.tabs button').forEach(btn=>{
-      if(btn.textContent.trim() === "Semaine") btn.classList.add("active");
-    });
   } else if(id === "vue-mois") {
     document.querySelectorAll('.tabs button').forEach(btn=>{
       if(btn.textContent.trim() === "Mois") btn.classList.add("active");
@@ -693,9 +823,11 @@ function majUI(){
   setChildHeaders();
   setCurrentDayLabel();     // 🔹 Affiche le jour courant sous "Semaine" (vue Jour)
   majVueJour();
-  majVueSemaine();
+  majAvancementJournee();
   majVueMois();
   calculer();
+  renderRadials();
+
   
   // ✅ Réattacher les boutons de maintenance à chaque reconstruction
   document.getElementById("btnResetChildren")?.addEventListener("click", resetAllChildren);
@@ -1096,35 +1228,42 @@ function showToast(message, color = "var(--primary)") {
   setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
-
 document.addEventListener("DOMContentLoaded",()=>{
   bootstrapIfEmpty();
   majUI();
   showView("vue-accueil"); // ✅ vue par défaut au lancement
 
-  // Vue Jour : semaine précédente/suivante
-  document.getElementById("btnPrev")?.addEventListener("click",()=>changerSemaine(-1));
-  document.getElementById("btnNext")?.addEventListener("click",()=>changerSemaine(1));
+  document.getElementById("btnPrev")?.addEventListener("click",()=>{
+    changerSemaine(-1);
+    renderRadials();
+  });
+  document.getElementById("btnNext")?.addEventListener("click",()=>{
+    changerSemaine(1);
+    renderRadials();
+  });
 
-  // Vue Semaine : semaine précédente/suivante
-  document.getElementById("btnPrevWeek")?.addEventListener("click",()=>changerSemaine(-1));
-  document.getElementById("btnNextWeek")?.addEventListener("click",()=>changerSemaine(1));
-
-  // Vue Mois : mois précédent/suivant
   document.getElementById("btnPrevMonth")?.addEventListener("click",()=>{
     currentDate.setMonth(currentDate.getMonth()-1);
     majUI();
+    renderRadials();
   });
   document.getElementById("btnNextMonth")?.addEventListener("click",()=>{
     currentDate.setMonth(currentDate.getMonth()+1);
     majUI();
+    renderRadials();
   });
+
 
   // Résultats (upload / delete image)
   document.getElementById("btnUploadImage")?.addEventListener("click",uploadImage);
   document.getElementById("btnDeleteImage")?.addEventListener("click",deleteImage);
 
+  // 🔹 Ajout à faire ici :
+  initDailyProgressListeners();
+  majAvancementJournee();
 });
+
+
 
 /* ================= Exposition des handlers (globaux) ================= */
 

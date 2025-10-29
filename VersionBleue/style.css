@@ -1493,3 +1493,147 @@ body.install-page .sidebar.show {
   border-radius: var(--radius);
   font-size: 0.9rem;
 }
+
+/* ===== Progress Duo (vue-jour) ===== */
+.progress-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+.progress-card {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.progress-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #f2f2f2;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #52b788, #40916c);
+  transition: width 220ms ease;
+}
+.progress-caption {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #444;
+}
+/* Petits écrans */
+@media (max-width: 680px) {
+  .progress-duo { grid-template-columns: 1fr; }
+}
+
+/* ====== Radial Progress (jour / semaine / mois) ====== */
+:root{
+  --color-jour: #1e63d1;     /* 🔹 Bleu vif pour le jour */
+  --color-semaine: #2ecc71;  /* 🟩 Vert pour la semaine */
+  --color-mois: #8e44ad;     /* 🟪 Violet pour le mois */
+}
+
+
+/* Conteneur général : parfaitement aligné et centré */
+.radial-trio {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin: 10px 0 18px;
+  flex-wrap: nowrap;
+}
+
+/* Chaque cercle réduit */
+.radial {
+  width: 90px;    /* 🔹 diamètre réduit */
+  height: 90px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radial svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.05));
+}
+
+/* anneau externe gris */
+.radial .outer-ring {
+  stroke: #777;
+  stroke-width: 4;
+  fill: none;
+}
+
+/* segments gris (fond) */
+.radial .seg-bg {
+  stroke: #e6e6e6;
+  stroke-width: 10;
+  fill: none;
+  stroke-linecap: butt;
+}
+
+/* segments colorés (progression) */
+.radial .seg-fill {
+  stroke-width: 10;
+  fill: none;
+  stroke-linecap: butt;
+}
+
+/* pastille centrale */
+.radial .center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* pastille blanche avec texte */
+.radial .badge {
+  width: 48px;    /* 🔹 plus petit */
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.radial .pct {
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--primary);
+}
+
+.radial .lbl {
+  font-size: 10px;
+  opacity: 0.8;
+  margin-top: 1px;
+  color: #333;
+}
+
+/* Mobile : les empile verticalement */
+@media (max-width: 600px) {
+  .radial-trio {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
