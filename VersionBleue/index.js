@@ -682,6 +682,59 @@ function computeMonthProgress(){
   return total ? Math.round(done/total*100) : 0;
 }
 
+function ensureNotesForWeekChild(child, weekKey){
+  if(!child.notes) child.notes = {};
+  if(!Array.isArray(child.notes[weekKey]) || child.notes[weekKey].length !== (child.tasks?.length || 0)){
+    child.notes[weekKey] = (child.tasks || []).map(()=>[0,0,0,0,0,0,0]);
+  }
+}
+
+function computeDailyForChildIdx(idx){
+  const child = children[idx]; if(!child) return 0;
+  const weekKey = getWeekKey();
+  ensureNotesForWeekChild(child, weekKey);
+  const d = new Date(currentDate);
+  const dayIdx = (d.getDay()===0)?6:(d.getDay()-1);
+  let total=0, sum=0;
+  (child.tasks || []).forEach((t,i)=>{
+    const v = child.notes[weekKey]?.[i]?.[dayIdx];
+    if(v !== undefined){ total+=1; sum += parseFloat(v)||0; }
+  });
+  return total? Math.round(sum/total*100) : 0;
+}
+
+function computeWeekForChildIdx(idx){
+  const child = children[idx]; if(!child) return 0;
+  const key = getWeekKey();
+  ensureNotesForWeekChild(child, key);
+  let total=0, sum=0;
+  (child.tasks || []).forEach((t,i)=>{
+    (child.notes[key]?.[i] || []).forEach(v=>{ total+=1; sum += parseFloat(v)||0; });
+  });
+  return total? Math.round(sum/total*100) : 0;
+}
+
+function computeMonthForChildIdx(idx){
+  const child = children[idx]; if(!child) return 0;
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const last = new Date(year, month+1, 0).getDate();
+  let total=0, sum=0;
+
+  for(let d=1; d<=last; d++){
+    const date = new Date(year, month, d);
+    const dayIdx = (date.getDay()===0)?6:(date.getDay()-1);
+    const weekKey = `${getWeekNumber(date)}-${date.getFullYear()}`;
+    ensureNotesForWeekChild(child, weekKey);
+    (child.tasks || []).forEach((t,i)=>{
+      const v = child.notes[weekKey]?.[i]?.[dayIdx];
+      if(v !== undefined){ total+=1; sum += parseFloat(v)||0; }
+    });
+  }
+  return total? Math.round(sum/total*100) : 0;
+}
+
+
 /* Dessine une jauge segmentée type "donut" avec 12 segments */
 function drawRadial(containerId, percent, strokeColor, label){
   const host = document.getElementById(containerId);
@@ -756,6 +809,89 @@ function renderRadials(){
   drawRadial("radial-mois",    pctMonth,css.getPropertyValue("--color-mois").trim()    || "#8e44ad", "mois");
 }
 
+function renderHome(){
+  const hero = document.getElementById('homeHero');
+  const title = document.getElementById('homeTitle');
+  const subtitle = document.getElementById('homeSubtitle');
+  const illustration = document.getElementById('homeIllustration');
+  const list = document.getElementById('homeChildren');
+
+  if(!hero || !title || !list) return;
+
+  const hasChildren = (children && children.length > 0);
+
+  if(!hasChildren){
+    // Mode "Bienvenue"
+    title.textContent = "Bienvenue dans le Daily Home Kid Challenge 🎉";
+    if(subtitle) subtitle.style.display = "";
+    if(illustration) illustration.style.display = "";
+    list.style.display = "none";
+    hero.style.display = "";
+    return;
+  }
+
+  // Mode "Récapitulatif"
+  title.textContent = "Récapitulatif par enfant";
+  if(subtitle) subtitle.style.display = "none";
+  if(illustration) illustration.style.display = "none";
+  hero.style.display = "";         // on garde le titre
+  list.style.display = "";         // on montre la grille
+
+  list.innerHTML = ""; // reset
+  children.forEach((ch, idx)=>{
+    const name = (ch?.settings?.childName || "Mon enfant").trim();
+    const avatar = ch?.settings?.avatar || "img/default.png";
+
+    const pctDay   = computeDailyForChildIdx(idx);
+    const pctWeek  = computeWeekForChildIdx(idx);
+    const pctMonth = computeMonthForChildIdx(idx);
+
+    const card = document.createElement('article');
+    card.className = "child-card";
+    card.innerHTML = `
+      <img class="card-avatar" src="${avatar}" alt="${name}">
+      <div>
+        <div class="card-title">${name}</div>
+        <div class="hc-bars">
+          <div class="hc-row">
+            <div class="hc-label">Jour</div>
+            <div class="hc-bar"><div class="hc-fill day"   style="width:${pctDay}%"></div></div>
+            <div class="hc-pct">${pctDay}%</div>
+          </div>
+          <div class="hc-row">
+            <div class="hc-label">Semaine</div>
+            <div class="hc-bar"><div class="hc-fill week"  style="width:${pctWeek}%"></div></div>
+            <div class="hc-pct">${pctWeek}%</div>
+          </div>
+          <div class="hc-row">
+            <div class="hc-label">Mois</div>
+            <div class="hc-bar"><div class="hc-fill month" style="width:${pctMonth}%"></div></div>
+            <div class="hc-pct">${pctMonth}%</div>
+          </div>
+        </div>
+      </div>
+    `;
+	// Rendre la carte cliquable → ouvrir la vue Jour de l’enfant
+card.setAttribute('role', 'button');
+card.setAttribute('tabindex', '0');
+card.setAttribute('title', `Ouvrir le suivi de ${name}`);
+
+card.addEventListener('click', () => {
+  selectChild(idx);
+  showView('vue-jour');
+});
+
+card.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    selectChild(idx);
+    showView('vue-jour');
+  }
+});
+
+    list.appendChild(card);
+  });
+}
 
 
 function afficherHistorique(){
@@ -910,7 +1046,8 @@ function majUI(){
   renderRadials();
   syncCustomWeekIfVisible();
 
-  
+  // 🔹 NOUVEAU : rafraîchir la page d’accueil selon présence d’enfants
+  renderHome();
   // ✅ Réattacher les boutons de maintenance à chaque reconstruction
   document.getElementById("btnResetChildren")?.addEventListener("click", resetAllChildren);
   document.getElementById("btnPurgeAll")?.addEventListener("click", purgeAll);

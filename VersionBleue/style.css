@@ -1876,3 +1876,52 @@ body.install-page .sidebar.show {
     transition: none;
   }
 }
+
+/* ===== Accueil : cartes récap enfant ===== */
+.home-children{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: .5rem;
+}
+
+.child-card{
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.child-card .card-avatar{
+  width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+  border: 2px solid rgba(0,0,0,.06);
+}
+
+.child-card .card-title{
+  font-weight: 700; margin-bottom: 6px; font-size: 1rem; color: var(--primary);
+}
+
+.hc-bars{ display: grid; gap: 8px; }
+.hc-row{ display: grid; grid-template-columns: 100px 1fr 52px; gap: 8px; align-items: center; }
+.hc-label{ font-size: .85rem; font-weight: 600; color: #334155; text-transform: capitalize; }
+
+.hc-bar{
+  height: 10px; background: #eef2f7; border-radius: 999px; overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04);
+}
+.hc-fill{ height: 100%; width: 0%; transition: width .25s ease; }
+
+.hc-fill.day{   background: var(--color-jour,   #1e63d1); }
+.hc-fill.week{  background: var(--color-semaine,#2ecc71); }
+.hc-fill.month{ background: var(--color-mois,  #8e44ad); }
+
+.hc-pct{ font-size: .85rem; font-weight: 700; color: var(--primary); text-align: right; }
+
+.child-card { cursor: pointer; transition: transform .06s ease, box-shadow .2s ease; }
+.child-card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.child-card:focus-within { outline: 2px solid var(--secondary); outline-offset: 2px; }
+
