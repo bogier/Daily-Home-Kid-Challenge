@@ -1753,63 +1753,126 @@ body.install-page .sidebar.show {
   line-height: 1.1;
 }
 
-/* === Vue jour — agrandir les lettres des jours === */
+/* === Vue jour — centrage + marges protectrices + focus réduit === */
+#vue-jour {
+  width: 100%;
+  overflow-x: hidden; /* empêche tout dépassement horizontal */
+}
+
 #vue-jour .jour-selector {
-  gap: 0.5rem; /* un peu plus d’air autour des cercles */
-}
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.4rem, 1.5vw, 0.7rem);
 
-#vue-jour .jour-btn {
-  /* tailles + typo plus lisibles, responsives */
-  width: 3rem;
-  height: 3rem;
-  line-height: 3rem;
-  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-  font-weight: 700;
-}
+  /* marges internes adaptatives + safe area */
+  padding-left:  calc(max(0.8rem, env(safe-area-inset-left)));
+  padding-right: calc(max(0.8rem, env(safe-area-inset-right)));
 
-/* Optionnel : quand actif, grossir très légèrement */
-#vue-jour .jour-btn.active {
-  transform: scale(1.06);
-}
-
-/* Optionnel : petit ajustement mobile étroit */
-@media (max-width: 380px) {
-  #vue-jour .jour-btn {
-    width: 2.6rem;
-    height: 2.6rem;
-    line-height: 2.6rem;
-    font-size: 1.2rem;
-  }
-}
-
-/* === Vue jour — version XL : lettres de jours agrandies === */
-#vue-jour .jour-selector {
-  gap: 0.7rem; /* plus d'espace entre les boutons */
+  margin-inline: auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 #vue-jour .jour-btn {
   width: 3.6rem;
   height: 3.6rem;
   line-height: 3.6rem;
-  font-size: clamp(1.3rem, 3vw, 1.8rem);
-  font-weight: 800;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: -0.13em;            /* lettres plus serrées */
   border-radius: 50%;
-  transition: transform 0.15s ease, background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: inherit;
+  background: transparent;
+
+  /* transitions douces */
+  transition:
+    transform 0.15s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-/* effet d'accentuation du jour sélectionné */
+/* === État actif (sélectionné) — plus petit, plus contrasté === */
 #vue-jour .jour-btn.active {
-  transform: scale(1.1);
+  transform: scale(0.95);             /* cercle légèrement plus petit */
   background-color: var(--accent-color, #2b6cb0);
-  color: white;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.08); /* léger liseré pour détacher */
 }
 
-/* responsive : sur petit écran, adapter légèrement */
+/* === Hover: accent éclairci (sans grossir) === */
+@supports (color: color-mix(in oklab, white, black)) {
+  #vue-jour .jour-btn:hover:not(.active) {
+    /* éclaircit l’accent de ~15% */
+    background-color: color-mix(in oklab, var(--accent-color, #2b6cb0) 85%, white);
+    color: #fff;
+  }
+}
+/* Fallback hover si color-mix indisponible */
+@supports not (color: color-mix(in oklab, white, black)) {
+  #vue-jour .jour-btn:hover:not(.active) {
+    background-color: #4a86c5; /* proche de l’accent éclairci */
+    color: #fff;
+  }
+}
+
+/* === Active (clic): très léger assombrissement pour le tap feedback === */
+@supports (color: color-mix(in oklab, white, black)) {
+  #vue-jour .jour-btn:active {
+    background-color: color-mix(in oklab, var(--accent-color, #2b6cb0) 90%, black);
+  }
+}
+@supports not (color: color-mix(in oklab, white, black)) {
+  #vue-jour .jour-btn:active {
+    background-color: #255a8f;
+  }
+}
+
+/* === Focus visible: anneau d’accessibilité propre, sans agrandir === */
+#vue-jour .jour-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #fff, /* bord interne pour contraste sur fonds variés */
+    0 0 0 4px color-mix(in oklab, var(--accent-color, #2b6cb0) 70%, white);
+}
+@supports not (color: color-mix(in oklab, white, black)) {
+  #vue-jour .jour-btn:focus-visible {
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px rgba(43,108,176,0.6);
+  }
+}
+
+/* === Responsive : petit écran === */
 @media (max-width: 380px) {
+  #vue-jour .jour-selector {
+    gap: clamp(0.3rem, 1.2vw, 0.5rem);
+    padding-left:  calc(max(0.9rem, env(safe-area-inset-left)));
+    padding-right: calc(max(0.9rem, env(safe-area-inset-right)));
+  }
+
   #vue-jour .jour-btn {
-    width: 3rem;
-    height: 3rem;
-    line-height: 3rem;
-    font-size: 1.5rem;
+    width: 3.2rem;
+    height: 3.2rem;
+    line-height: 3.2rem;
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    letter-spacing: -0.14em;          /* encore un chouïa plus serré sur mobile */
+  }
+
+  #vue-jour .jour-btn.active {
+    transform: scale(0.92);           /* cercle actif encore plus petit sur mobile */
+  }
+}
+
+/* Respecte le réglage d’accessibilité “réduire les animations” */
+@media (prefers-reduced-motion: reduce) {
+  #vue-jour .jour-btn {
+    transition: none;
   }
 }
