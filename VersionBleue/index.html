@@ -86,8 +86,20 @@
 
 <div class="child-and-day">
   <p class="current-child" id="currentChild_day">—</p>
-  <span class="day-label" id="currentDayLabel">—</span>
+  
 </div>
+
+ <!-- === BARRE DE SÉLECTION DU JOUR (vue-jour) === -->
+    <div id="jour-selector" class="jour-selector">
+      <button type="button" class="jour-btn" data-day-idx="0" title="Lundi">L</button>
+      <button type="button" class="jour-btn" data-day-idx="1" title="Mardi">M</button>
+      <button type="button" class="jour-btn" data-day-idx="2" title="Mercredi">M</button>
+      <button type="button" class="jour-btn" data-day-idx="3" title="Jeudi">J</button>
+      <button type="button" class="jour-btn" data-day-idx="4" title="Vendredi">V</button>
+      <button type="button" class="jour-btn" data-day-idx="5" title="Samedi">S</button>
+      <button type="button" class="jour-btn" data-day-idx="6" title="Dimanche">D</button>
+    </div>
+    <!-- === /BARRE DE SÉLECTION DU JOUR === -->
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab(this,'vue-jour')">Jour</button>

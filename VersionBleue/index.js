@@ -441,7 +441,7 @@ function sauverNotes(){
   });
 
   saveChildren();
-
+  majVueMois();
   // 🔹 Réafficher la vue jour immédiatement
   majVueJour();
   majAvancementJournee();
@@ -1351,9 +1351,88 @@ function showToast(message, color = "var(--primary)") {
   setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
+/* === Vue-jour : sélection du jour === */
+
+/** Retourne le dayIdx (0=Lundi..6=Dimanche) pour la currentDate dans SA semaine. */
+function getDayIdxInWeek(date) {
+  const monday = getMonday(date);                  // util déjà présent chez toi
+  const diffDays = Math.round((date - monday) / (24 * 3600 * 1000));
+  return Math.max(0, Math.min(6, diffDays));
+}
+
+/** Définit currentDate sur le jour d’index dayIdx dans la semaine ACTUELLEMENT affichée. */
+function setDayIdxInCurrentWeek(dayIdx) {
+  const monday = getMonday(currentDate);           // on ne change pas de semaine, on bouge juste le jour
+  const newDate = new Date(monday);
+  newDate.setDate(monday.getDate() + dayIdx);
+  currentDate = newDate;
+
+  // Rendu de la vue-jour (garde le verrouillage : radios disabled si semaine != courante)
+  majVueJour();
+  // <-- AJOUTER ICI :
+  majAvancementJournee();
+  renderRadials();
+
+  if (typeof updateJourSelectorUI === "function") updateJourSelectorUI();
+   
+}
+
+/** Met à jour la classe .active sur la bonne puce selon currentDate. */
+function updateJourSelectorUI() {
+  const container = document.getElementById('jour-selector');
+  if (!container) return;
+
+  const idx = getDayIdxInWeek(currentDate);
+  container.querySelectorAll('.jour-btn').forEach((btn) => {
+    const bIdx = parseInt(btn.getAttribute('data-day-idx'), 10);
+    if (bIdx === idx) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+/** Branche les listeners sur la barre 7 jours. À appeler une fois au chargement. */
+function initJourSelector() {
+  const container = document.getElementById('jour-selector');
+  if (!container) return;
+
+  // Clic sur une puce
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.jour-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.getAttribute('data-day-idx'), 10);
+    if (Number.isNaN(idx)) return;
+
+    // On autorise toujours la navigation jour, même si la semaine est verrouillée
+    // (le verrouillage s'applique à la SAISIE via les radios déjà disabled hors semaine courante)
+    setDayIdxInCurrentWeek(idx);
+  });
+
+  // Initialisation de l'état visuel
+  updateJourSelectorUI();
+}
+
+/* --- IMPORTANT : appeler initJourSelector au démarrage --- */
+// Exemple : dans ton init global existant
+document.addEventListener('DOMContentLoaded', () => {
+  // ... ton init existant ...
+  initJourSelector();
+
+  // Assure que la barre se met à jour quand la vue-jour se rafraîchit ou si la semaine change
+  // => si tu as déjà un hook après majVueJour() globale, sinon :
+  const _majVueJour = majVueJour;
+  window.majVueJour = function () {
+    _majVueJour.apply(this, arguments);
+    updateJourSelectorUI();
+  };
+});
+
+
 document.addEventListener("DOMContentLoaded",()=>{
   bootstrapIfEmpty();
   majUI();
+  initJourSelector();
+  updateJourSelectorUI(); // synchronise la puce bleue au premier rendu
+
   showView("vue-accueil"); // ✅ vue par défaut au lancement
 
   document.getElementById("btnPrev")?.addEventListener("click",()=>{
@@ -1384,6 +1463,17 @@ document.addEventListener("DOMContentLoaded",()=>{
   // 🔹 Ajout à faire ici :
   initDailyProgressListeners();
   majAvancementJournee();
+    // === Hook : après chaque rafraîchissement de la vue-jour, on met à jour la barre ===
+  const _majVueJour = majVueJour;
+  window.majVueJour = function () {
+    _majVueJour.apply(this, arguments);
+  // --> AJOUTS pour corriger le bug :
+  majAvancementJournee();  // recalcule le % jour pour le jour affiché
+  renderRadials();         // redessine les cercles (jour/semaine/mois)
+  // (si tu as la barre 7 jours) :
+  if (typeof updateJourSelectorUI === "function") updateJourSelectorUI();  
+  };
+
 });
 
 
