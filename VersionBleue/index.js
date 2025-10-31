@@ -314,11 +314,11 @@ function majVueJour(){
         <td>${t.name}</td>
         <td class="rating-cell">
           <input type="radio" id="${name}v0" name="${name}" data-task="${i}" data-day="${dayIdx}" value="0" ${val==0?'checked':''} ${disable}>
-          <label for="${name}v0">❌</label>
+          <label for="${name}v0">🔴</label>
           <input type="radio" id="${name}v05" name="${name}" data-task="${i}" data-day="${dayIdx}" value="0.5" ${val==0.5?'checked':''} ${disable}>
-          <label for="${name}v05">⚠️</label>
+          <label for="${name}v05">️🟡</label>
           <input type="radio" id="${name}v1" name="${name}" data-task="${i}" data-day="${dayIdx}" value="1" ${val==1?'checked':''} ${disable}>
-          <label for="${name}v1">✅</label>
+          <label for="${name}v1">🟢</label>
         </td>
       </tr>`);
   });
