@@ -1925,3 +1925,99 @@ body.install-page .sidebar.show {
 .child-card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
 .child-card:focus-within { outline: 2px solid var(--secondary); outline-offset: 2px; }
 
+/* === DHKC v4.6.18 — PATCH vue-jour (espaces ultra-compacts) === */
+
+/* 0) Resserrement global de la vue */
+#vue-jour {
+  padding-top: 0.2rem !important; /* avant 0.5rem */
+}
+
+/* 1) Date collée au bandeau */
+#vue-jour .view-header {
+  padding-top: 0.2rem !important;   /* encore plus proche du haut */
+  gap: 0.15rem !important;          /* réduit l'espacement interne */
+}
+#vue-jour .calendar {
+  margin-top: 0 !important;
+}
+#vue-jour .calendar-title h2 {
+  margin: 0 !important;
+  line-height: 1.1;                 /* compact sans couper le texte */
+}
+
+/* 2) Nom de l’enfant ↔ Date */
+#vue-jour .child-and-day {
+  margin-top: 0.05rem !important;   /* presque collé */
+  margin-bottom: 0.1rem !important;
+}
+#vue-jour .current-child {
+  margin: 0 !important;
+  line-height: 1.05;
+}
+
+/* 3) Nom de l’enfant ↔ Jours de la semaine */
+#vue-jour .jour-selector {
+  margin-top: 0.1rem !important;    /* avant 0.18rem */
+  margin-bottom: 0.18rem !important;
+}
+
+/* === DHKC v4.6.18 — PATCH vue-mois (espaces ultra-compacts) === */
+
+/* Zone principale de la vue mois */
+#vue-mois {
+  padding-top: 0.2rem !important;
+}
+
+/* 1) Nom de l’enfant : remonter comme dans la vue-jour */
+#vue-mois .child-and-day {
+  margin-top: 0.05rem !important;   /* quasi collé à la barre précédente */
+  margin-bottom: 0.1rem !important;
+}
+#vue-mois .current-child {
+  margin: 0 !important;
+  line-height: 1.05;
+}
+
+/* 2) Boutons Jour / Mois (le switch de vue) */
+#vue-mois .switch-view,
+#vue-mois .mode-selector,
+#vue-mois .toggle-view {
+  margin-top: 0.1rem !important;     /* avant 0.5–1rem selon version */
+  margin-bottom: 0.18rem !important;
+  gap: 0.25rem !important;           /* rapproche les boutons */
+}
+
+/* Si les boutons sont à l’intérieur d’un flex ou d’un header */
+#vue-mois .switch-view button,
+#vue-mois .mode-selector button,
+#vue-mois .toggle-view button {
+  padding: 0.25rem 0.5rem !important; /* plus fins verticalement */
+  line-height: 1.05;
+}
+
+/* Optionnel : ajuster légèrement la taille pour un rendu homogène */
+#vue-mois .switch-view button span,
+#vue-mois .mode-selector button span {
+  font-size: 0.95em;
+}
+
+/* === DHKC v4.6.18 — PATCH vue-mois (alignement vertical) === */
+
+/* Remonte la vue-mois pour l'aligner avec la vue-jour */
+#vue-mois {
+  margin-top: -0.4rem !important;  /* décalage vers le haut (ajuste selon rendu réel) */
+  padding-top: 0.2rem !important;  /* conserve un petit coussin intérieur */
+}
+
+/* Si un conteneur parent impose du padding supplémentaire */
+.main-content > #vue-mois,
+.view-container > #vue-mois {
+  margin-top: -0.5rem !important;
+}
+
+/* Harmonise aussi la transition entre jour/mois */
+#vue-mois .view-header {
+  margin-top: 0 !important;
+  padding-top: 0.25rem !important;
+  gap: 0.15rem !important;
+}
