@@ -140,9 +140,9 @@ function addChild(){
 function deleteChild(i){
   if(!confirm("Supprimer cet enfant ?")) return;
   children.splice(i,1);
-  if(!children.length) bootstrapIfEmpty();
   currentChild = Math.min(currentChild, children.length-1);
   saveChildren(); majUI();
+  showView('vue-accueil'); // ✅ retourne proprement à l’accueil
 }
 function renameChild(i){
   const cur = children[i].settings.childName || "";
@@ -220,6 +220,7 @@ function purgeAll(){
 
   majUI();
   alert("🗑️ Tous les enfants ont été supprimés !");
+   showView('vue-accueil'); // ✅ retourne proprement à l’accueil
 }
 
 
@@ -817,6 +818,8 @@ function renderHome(){
   const list = document.getElementById('homeChildren');
 
   if(!hero || !title || !list) return;
+    // ✅ toujours repartir d’un conteneur vide
+  list.innerHTML = "";
 
   const hasChildren = (children && children.length > 0);
 
@@ -1016,6 +1019,8 @@ function showView(id){
       if(btn.textContent.trim() === "Mois") btn.classList.add("active");
     });
   }
+  // ✅ rafraîchir le contenu réel de l’accueil à chaque navigation
+  if(id === "vue-accueil"){ renderHome(); }
 
   // Toujours fermer le menu quand on change de vue
   closeMenu();
