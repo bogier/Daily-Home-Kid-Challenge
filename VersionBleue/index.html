@@ -26,7 +26,11 @@
 
   <div class="sidebar-content">
     <ul class="nav-list">
-      <li onclick="showView('vue-accueil')">🏠 Accueil</li>
+      <li onclick="showView('vue-accueil')" class="menu-accueil">
+        <img src="icons/accueil.png" alt="Accueil" class="icon-home">
+        <span>Accueil</span>
+      </li>
+
     </ul>
 
     <input id="importChildInput" type="file" accept="application/json" style="display:none" onchange="handleImportChild(event)">
@@ -39,16 +43,42 @@
     <!-- Accordéon Paramètres -->
     <li class="child-accordion" id="parametresAccordion">
       <h3>
-        <span>⚙️ Paramètres</span>
+        <span class="menu-parametres">
+         <img src="icons/parameters.PNG" alt="Paramètres" class="icon-parametres">
+         <span>Paramètres</span>
+        </span>
+
         <span class="arrow">▼</span>
       </h3>
       <ul class="options">
-        <li class="sidebar-link" onclick="addChild()">➕ Ajouter un enfant</li>
-        <li class="sidebar-link" onclick="document.getElementById('importChildInput').click()">📥 Importer un enfant</li>
-        <li class="sidebar-link" onclick="importExample()">🧪 Importer l'exemple</li>
-        <li id="btnResetChildren" class="sidebar-link">♻️ Réinitialiser les enfants</li>
-        <li id="btnPurgeAll" class="sidebar-link">🗑️ Purge totale</li>
-        <li><a href="about.html" class="sidebar-link">📘 À propos</a></li>
+<li class="sidebar-link menu-ajouter" onclick="addChild()">
+  <img src="icons/AjouterEnfant.PNG" alt="Ajouter un enfant" class="icon-ajouter">
+  <span>Ajouter un enfant</span>
+</li>
+      
+<li class="sidebar-link menu-importer" onclick="document.getElementById('importChildInput').click()">
+  <img src="icons/importer.png" alt="Importer un enfant" class="icon-importer">
+  <span>Importer un enfant</span>
+</li>
+<li class="sidebar-link menu-importer-exemple" onclick="importExample()">
+  <img src="icons/importerExemple.png" alt="Importer l'exemple" class="icon-importer-exemple">
+  <span>Importer l'exemple</span>
+</li>
+<li id="btnResetChildren" class="sidebar-link menu-reset">
+  <img src="icons/ReinitialiserEnfants.PNG" alt="Réinitialiser les enfants" class="icon-reset">
+  <span>Réinitialiser les enfants</span>
+</li>
+<li id="btnPurgeAll" class="sidebar-link menu-purge">
+  <img src="icons/PurgeTotale.PNG" alt="Purge totale" class="icon-purge">
+  <span>Purge totale</span>
+</li>        
+<li>
+  <a href="about.html" class="sidebar-link menu-apropos">
+    <img src="icons/Apropos.PNG" alt="À propos" class="icon-apropos">
+    <span>À propos</span>
+  </a>
+</li>
+
         <li><a href="install.html" class="sidebar-link">⬇️ Installer l’app</a></li>
       </ul>
     </li>

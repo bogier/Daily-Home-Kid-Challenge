@@ -1925,99 +1925,269 @@ body.install-page .sidebar.show {
 .child-card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
 .child-card:focus-within { outline: 2px solid var(--secondary); outline-offset: 2px; }
 
-/* === DHKC v4.6.18 — PATCH vue-jour (espaces ultra-compacts) === */
-
-/* 0) Resserrement global de la vue */
-#vue-jour {
-  padding-top: 0.2rem !important; /* avant 0.5rem */
+.menu-accueil {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
-/* 1) Date collée au bandeau */
-#vue-jour .view-header {
-  padding-top: 0.2rem !important;   /* encore plus proche du haut */
-  gap: 0.15rem !important;          /* réduit l'espacement interne */
-}
-#vue-jour .calendar {
-  margin-top: 0 !important;
-}
-#vue-jour .calendar-title h2 {
-  margin: 0 !important;
-  line-height: 1.1;                 /* compact sans couper le texte */
+.icon-home {
+  height: 22px;
+  width: auto;
+  transition: transform 0.2s ease;
+  vertical-align: middle;
 }
 
-/* 2) Nom de l’enfant ↔ Date */
-#vue-jour .child-and-day {
-  margin-top: 0.05rem !important;   /* presque collé */
-  margin-bottom: 0.1rem !important;
-}
-#vue-jour .current-child {
-  margin: 0 !important;
-  line-height: 1.05;
+.menu-accueil:hover .icon-home {
+  transform: scale(1.1);
 }
 
-/* 3) Nom de l’enfant ↔ Jours de la semaine */
-#vue-jour .jour-selector {
-  margin-top: 0.1rem !important;    /* avant 0.18rem */
-  margin-bottom: 0.18rem !important;
+.menu-nom-avatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
-/* === DHKC v4.6.18 — PATCH vue-mois (espaces ultra-compacts) === */
-
-/* Zone principale de la vue mois */
-#vue-mois {
-  padding-top: 0.2rem !important;
+.icon-nom-avatar {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
 }
 
-/* 1) Nom de l’enfant : remonter comme dans la vue-jour */
-#vue-mois .child-and-day {
-  margin-top: 0.05rem !important;   /* quasi collé à la barre précédente */
-  margin-bottom: 0.1rem !important;
+.menu-nom-avatar:hover .icon-nom-avatar {
+  transform: scale(1.1);
 }
-#vue-mois .current-child {
-  margin: 0 !important;
-  line-height: 1.05;
-}
-
-/* 2) Boutons Jour / Mois (le switch de vue) */
-#vue-mois .switch-view,
-#vue-mois .mode-selector,
-#vue-mois .toggle-view {
-  margin-top: 0.1rem !important;     /* avant 0.5–1rem selon version */
-  margin-bottom: 0.18rem !important;
-  gap: 0.25rem !important;           /* rapproche les boutons */
+.menu-taches {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
-/* Si les boutons sont à l’intérieur d’un flex ou d’un header */
-#vue-mois .switch-view button,
-#vue-mois .mode-selector button,
-#vue-mois .toggle-view button {
-  padding: 0.25rem 0.5rem !important; /* plus fins verticalement */
-  line-height: 1.05;
+.icon-taches {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
 }
 
-/* Optionnel : ajuster légèrement la taille pour un rendu homogène */
-#vue-mois .switch-view button span,
-#vue-mois .mode-selector button span {
-  font-size: 0.95em;
+.menu-taches:hover .icon-taches {
+  transform: scale(1.1);
+}
+.menu-recompenses {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
-/* === DHKC v4.6.18 — PATCH vue-mois (alignement vertical) === */
-
-/* Remonte la vue-mois pour l'aligner avec la vue-jour */
-#vue-mois {
-  margin-top: -0.4rem !important;  /* décalage vers le haut (ajuste selon rendu réel) */
-  padding-top: 0.2rem !important;  /* conserve un petit coussin intérieur */
+.icon-recompenses {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
 }
 
-/* Si un conteneur parent impose du padding supplémentaire */
-.main-content > #vue-mois,
-.view-container > #vue-mois {
-  margin-top: -0.5rem !important;
+.menu-recompenses:hover .icon-recompenses {
+  transform: scale(1.1);
 }
 
-/* Harmonise aussi la transition entre jour/mois */
-#vue-mois .view-header {
-  margin-top: 0 !important;
-  padding-top: 0.25rem !important;
-  gap: 0.15rem !important;
+.menu-exporter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-exporter {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-exporter:hover .icon-exporter {
+  transform: scale(1.1);
+}
+
+.menu-supprimer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-supprimer {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-supprimer:hover .icon-supprimer {
+  transform: scale(1.1);
+}
+
+.menu-suivi-taches {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-suivi-taches {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-suivi-taches:hover .icon-suivi-taches {
+  transform: scale(1.1);
+}
+
+.menu-resultats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-resultats {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-resultats:hover .icon-resultats {
+  transform: scale(1.1);
+}
+
+.menu-parametres {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-parametres {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-parametres:hover .icon-parametres {
+  transform: rotate(15deg);
+}
+
+.menu-ajouter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-ajouter {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-ajouter:hover .icon-ajouter {
+  transform: scale(1.1);
+}
+
+.menu-importer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-importer {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-importer:hover .icon-importer {
+  transform: scale(1.1);
+}
+
+.menu-importer-exemple {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-importer-exemple {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-importer-exemple:hover .icon-importer-exemple {
+  transform: scale(1.1);
+}
+
+.menu-reset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-reset {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-reset:hover .icon-reset {
+  transform: rotate(-10deg) scale(1.1);
+}
+.menu-purge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.icon-purge {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-purge:hover .icon-purge {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.menu-apropos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.icon-apropos {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-apropos:hover .icon-apropos {
+  transform: scale(1.1);
 }

@@ -89,13 +89,35 @@ function rebuildSidebar(){
           <span class="arrow">▼</span>
         </h3>
         <ul class="options">
-          <li onclick="openNameAvatar(${idx})">🖼️ Nom et avatar</li>
-          <li onclick="openTaskManager(${idx})">📋 Tâches</li>
-          <li onclick="openRewardsManager(${idx})">🎁 Récompenses</li>
-          <li onclick="exportChild(${idx})">📤 Exporter cet enfant</li>
-          <li onclick="deleteChild(${idx})">🗑️ Supprimer cet enfant</li>
-          <li onclick="selectChild(${idx}); showView('vue-jour')">📆 Suivi des tâches</li>
-          <li onclick="selectChild(${idx}); showView('vue-resultats')">🧩 Résultats</li>
+<li onclick="openNameAvatar(${idx})" class="menu-nom-avatar">
+  <img src="icons/NomEtAvatars.png" alt="Nom et avatar" class="icon-nom-avatar">
+  <span>Nom et avatar</span>
+</li>
+<li onclick="openTaskManager(${idx})" class="menu-taches">
+  <img src="icons/taches.png" alt="Tâches" class="icon-taches">
+  <span>Tâches</span>
+</li>
+<li onclick="openRewardsManager(${idx})" class="menu-recompenses">
+  <img src="icons/recompenses.png" alt="Récompenses" class="icon-recompenses">
+  <span>Récompenses</span>
+</li>
+<li onclick="exportChild(${idx})" class="menu-exporter">
+  <img src="icons/exporter.png" alt="Exporter un enfant" class="icon-exporter">
+  <span>Exporter cet enfant</span>
+</li>
+<li onclick="deleteChild(${idx})" class="menu-supprimer">
+  <img src="icons/SupprimerEnfant.png" alt="Supprimer un enfant" class="icon-supprimer">
+  <span>Supprimer cet enfant</span>
+</li>
+<li onclick="selectChild(${idx}); showView('vue-jour')" class="menu-suivi-taches">
+  <img src="icons/taches.png" alt="Suivi des tâches" class="icon-suivi-taches">
+  <span>Suivi des tâches</span>
+</li>
+<li onclick="selectChild(${idx}); showView('vue-resultats')" class="menu-resultats">
+  <img src="icons/Resultats.png" alt="Résultats" class="icon-resultats">
+  <span>Résultats</span>
+</li>
+
         </ul>
       </li>`);
   });
