@@ -2191,3 +2191,22 @@ body.install-page .sidebar.show {
 .menu-apropos:hover .icon-apropos {
   transform: scale(1.1);
 }
+
+.menu-installer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.icon-installer {
+  height: 22px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.menu-installer:hover .icon-installer {
+  transform: translateY(2px) scale(1.1);
+}
