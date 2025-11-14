@@ -271,14 +271,19 @@ function setChildHeaders(){
 }
 
 
-/* ---- Label du jour courant (affiché sous le bouton Semaine en vue Jour) ---- */
-function setCurrentDayLabel(){
+// Renvoie le nom du jour courant (en fonction de currentDate), ex : "Lundi"
+function getCurrentDayLongLabel(){
   const d = new Date(currentDate);
   const options = { weekday: 'long' };
   const jour = d.toLocaleDateString('fr-FR', options);
-  const lbl = document.getElementById("currentDayLabel");
-  if(lbl) lbl.textContent = jour.charAt(0).toUpperCase() + jour.slice(1);
+  return jour.charAt(0).toUpperCase() + jour.slice(1);
 }
+
+function setCurrentDayLabel(){
+  const lbl = document.getElementById("currentDayLabel");
+  if(lbl) lbl.textContent = getCurrentDayLongLabel();
+}
+
 
 /* ================= Vues Jour / Semaine / Mois ================= */
 
@@ -860,8 +865,12 @@ function renderHome(){
   hero.style.display = "";         // on garde le titre
   list.style.display = "";         // on montre la grille
 
+  // Libellé du jour traité (ex : "Lundi")
+  const dayLabel = getCurrentDayLongLabel();
+
   list.innerHTML = ""; // reset
   children.forEach((ch, idx)=>{
+
     const name = (ch?.settings?.childName || "Mon enfant").trim();
     const avatar = ch?.settings?.avatar || "img/default.png";
 
@@ -875,12 +884,14 @@ function renderHome(){
       <img class="card-avatar" src="${avatar}" alt="${name}">
       <div>
         <div class="card-title">${name}</div>
+
         <div class="hc-bars">
           <div class="hc-row">
-            <div class="hc-label">Jour</div>
+            <div class="hc-label">${dayLabel}</div>
             <div class="hc-bar"><div class="hc-fill day"   style="width:${pctDay}%"></div></div>
             <div class="hc-pct">${pctDay}%</div>
           </div>
+
           <div class="hc-row">
             <div class="hc-label">Semaine</div>
             <div class="hc-bar"><div class="hc-fill week"  style="width:${pctWeek}%"></div></div>
