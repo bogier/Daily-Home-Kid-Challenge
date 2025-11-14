@@ -2210,3 +2210,7 @@ body.install-page .sidebar.show {
 .menu-installer:hover .icon-installer {
   transform: translateY(2px) scale(1.1);
 }
+
+@keyframes taskFlash { 0%{background:#fff7cc} 100%{background:transparent} }
+#taskList li.added { animation: taskFlash .9s ease-out; }
+

@@ -89,35 +89,13 @@ function rebuildSidebar(){
           <span class="arrow">▼</span>
         </h3>
         <ul class="options">
-<li onclick="openNameAvatar(${idx})" class="menu-nom-avatar">
-  <img src="icons/NomEtAvatars.png" alt="Nom et avatar" class="icon-nom-avatar">
-  <span>Nom et avatar</span>
-</li>
-<li onclick="openTaskManager(${idx})" class="menu-taches">
-  <img src="icons/taches.png" alt="Tâches" class="icon-taches">
-  <span>Tâches</span>
-</li>
-<li onclick="openRewardsManager(${idx})" class="menu-recompenses">
-  <img src="icons/recompenses.png" alt="Récompenses" class="icon-recompenses">
-  <span>Récompenses</span>
-</li>
-<li onclick="exportChild(${idx})" class="menu-exporter">
-  <img src="icons/exporter.png" alt="Exporter un enfant" class="icon-exporter">
-  <span>Exporter cet enfant</span>
-</li>
-<li onclick="deleteChild(${idx})" class="menu-supprimer">
-  <img src="icons/SupprimerEnfant.png" alt="Supprimer un enfant" class="icon-supprimer">
-  <span>Supprimer cet enfant</span>
-</li>
-<li onclick="selectChild(${idx}); showView('vue-jour')" class="menu-suivi-taches">
-  <img src="icons/taches.png" alt="Suivi des tâches" class="icon-suivi-taches">
-  <span>Suivi des tâches</span>
-</li>
-<li onclick="selectChild(${idx}); showView('vue-resultats')" class="menu-resultats">
-  <img src="icons/Resultats.png" alt="Résultats" class="icon-resultats">
-  <span>Résultats</span>
-</li>
-
+          <li onclick="openNameAvatar(${idx})">🖼️ Nom et avatar</li>
+          <li onclick="openTaskManager(${idx})">📋 Tâches</li>
+          <li onclick="openRewardsManager(${idx})">🎁 Récompenses</li>
+          <li onclick="exportChild(${idx})">📤 Exporter cet enfant</li>
+          <li onclick="deleteChild(${idx})">🗑️ Supprimer cet enfant</li>
+          <li onclick="selectChild(${idx}); showView('vue-jour')">📆 Suivi des tâches</li>
+          <li onclick="selectChild(${idx}); showView('vue-resultats')">🧩 Résultats</li>
         </ul>
       </li>`);
   });
@@ -304,12 +282,32 @@ function setCurrentDayLabel(){
 
 /* ================= Vues Jour / Semaine / Mois ================= */
 
-function ensureNotesForWeek(child,key){
-  if(!child.notes) child.notes={};
-  if(!Array.isArray(child.notes[key])||child.notes[key].length!==(child.tasks?.length||0)){
-    child.notes[key]=(child.tasks||[]).map(()=>[0,0,0,0,0,0,0]);
+function ensureNotesForWeek(child, key){
+  if (!child.notes) child.notes = {};
+  const taskCount = (child.tasks?.length || 0);
+
+  if (!Array.isArray(child.notes[key])) {
+    child.notes[key] = [];
+  }
+  const arr = child.notes[key];
+
+  // Assure la forme [7] par ligne existante
+  for (let i = 0; i < arr.length; i++) {
+    if (!Array.isArray(arr[i]) || arr[i].length !== 7) {
+      arr[i] = [0,0,0,0,0,0,0];
+    }
+  }
+
+  // Étend si nouvelles tâches
+  while (arr.length < taskCount) {
+    arr.push([0,0,0,0,0,0,0]);
+  }
+  // Réduit si tâches en moins (on coupe la fin, cf. removeTask ci-dessous pour le cas index ciblé)
+  while (arr.length > taskCount) {
+    arr.pop();
   }
 }
+
 
 function majVueJour(){
   const tbody=document.querySelector("#vue-jour table tbody"); 
@@ -1218,6 +1216,35 @@ function deleteAvatar(){
 
 
 /* ===== Gestion des tâches ===== */
+// Insère une ligne de notes (7 jours) à la fin pour toutes les semaines
+function notesAppendRowForAllWeeks(child){
+  if (!child.notes) child.notes = {};
+  for (const wk of Object.keys(child.notes)) {
+    child.notes[wk].push([0,0,0,0,0,0,0]);
+  }
+}
+
+// Supprime la ligne i pour toutes les semaines
+function notesRemoveRowForAllWeeks(child, i){
+  if (!child.notes) return;
+  for (const wk of Object.keys(child.notes)) {
+    if (Array.isArray(child.notes[wk]) && child.notes[wk][i] !== undefined) {
+      child.notes[wk].splice(i,1);
+    }
+  }
+}
+
+// Échange les lignes i et j pour toutes les semaines (pour moveTask)
+function notesSwapRowsForAllWeeks(child, i, j){
+  if (!child.notes) return;
+  for (const wk of Object.keys(child.notes)) {
+    const arr = child.notes[wk];
+    if (Array.isArray(arr) && arr[i] !== undefined && arr[j] !== undefined) {
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+}
+
 function openTaskManager(i){
   selectChild(i);
   renderTaskList();
@@ -1228,6 +1255,8 @@ function renderTaskList(){
   const ul = document.getElementById("taskList");
   const child = getChild();
   if(!ul) return;
+  const hdr = document.getElementById("currentChild_tasks");
+  if (hdr) hdr.textContent = (child?.settings?.childName || "Mon enfant");
   ul.innerHTML = "";
   child.tasks.forEach((t, idx)=>{
     ul.insertAdjacentHTML("beforeend",`
@@ -1247,14 +1276,37 @@ function addTask(){
   if(!input) return;
   const name = input.value.trim();
   if(!name) return;
-  getChild().tasks.push({ name, weights:[1,1,1,1,1,0,0] });
-  saveChildren();
+  const child = getChild();
+  child.tasks.push({ name, weights:[1,1,1,1,1,0,0] });
+  // ↳ ajoute la ligne correspondante dans toutes les semaines existantes
+  notesAppendRowForAllWeeks(child);
+  // Assure la cohérence de la semaine affichée
+  ensureNotesForWeek(child, getWeekKey());
+  saveChildren();  
+  // 💡 garantit qu'on est bien sur la vue Tâches AVANT de re-rendre
+  showView("vue-taches");  
   renderTaskList();
   input.value = "";
+  // 👀 focus/scroll sur la nouvelle entrée + petit flash
+  requestAnimationFrame(()=>{
+    const ul = document.getElementById("taskList");
+    const li = ul?.lastElementChild;
+    if(li){
+      li.scrollIntoView({behavior:"smooth", block:"end"});
+      li.classList.add("added");
+      setTimeout(()=>li.classList.remove("added"), 900);
+    }
+    // Remettre le focus pour enchaîner les ajouts au clavier
+    input?.focus();
+  });
 }
 
 function removeTask(i){
-  getChild().tasks.splice(i,1);
+  const child = getChild();
+  child.tasks.splice(i,1);
+  // ↳ supprime la ligne i partout
+  notesRemoveRowForAllWeeks(child, i);
+  ensureNotesForWeek(child, getWeekKey());
   saveChildren();
   renderTaskList();
 }
@@ -1265,6 +1317,9 @@ function moveTask(i,dir){
   const j = i+dir;
   if(j<0 || j>=tasks.length) return;
   [tasks[i], tasks[j]] = [tasks[j], tasks[i]];
+  // ↳ swap des lignes de notes pour toutes les semaines
+  notesSwapRowsForAllWeeks(child, i, j);
+  ensureNotesForWeek(child, getWeekKey());
   saveChildren();
   renderTaskList();
 }
@@ -1596,7 +1651,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   majUI();
   initJourSelector();
   updateJourSelectorUI(); // synchronise la puce bleue au premier rendu
-
   showView("vue-accueil"); // ✅ vue par défaut au lancement
 
   document.getElementById("btnPrev")?.addEventListener("click",()=>{
@@ -1637,6 +1691,14 @@ document.addEventListener("DOMContentLoaded",()=>{
   // (si tu as la barre 7 jours) :
   if (typeof updateJourSelectorUI === "function") updateJourSelectorUI();  
   };
+
+  // Enter = Ajouter (après que le DOM est prêt)
+  const newTaskInput = document.getElementById("newTaskName");
+  if (newTaskInput) {
+    newTaskInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){ addTask(); }
+    });
+  }
 
 });
 
