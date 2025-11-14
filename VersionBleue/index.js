@@ -14,7 +14,12 @@ let children = JSON.parse(localStorage.getItem("children")) || [];
 let currentChild = 0;
 const days = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
-function getChild(){ return children[currentChild]; }
+function getChild(){
+  if (!children || !children.length) return null;
+  if (currentChild < 0 || currentChild >= children.length) return null;
+  return children[currentChild];
+}
+
 function saveChildren(){ localStorage.setItem("children", JSON.stringify(children)); }
 
 /* ------------------- Init enfants ------------------- */
@@ -157,6 +162,174 @@ function exportChild(i){
   a.href=u; a.download=`${children[i].settings.childName||'enfant'}.json`; a.click();
   URL.revokeObjectURL(u);
 }
+function exportAllData() {
+  if (!children || !children.length) {
+    alert("Aucune donnée à exporter (aucun enfant trouvé).");
+    return;
+  }
+
+  // On prépare le payload normalisé
+  const payload = {
+    schema: "dhkc-export",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: {
+      children: children,         // on prend l’état en mémoire
+      currentChild: currentChild  // index courant
+    }
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+
+  // Nom de fichier : dhkc-export-YYYYMMDD-HHMM.json
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const fileName =
+    "dhkc-export-" +
+    now.getFullYear() +
+    pad(now.getMonth() + 1) +
+    pad(now.getDate()) +
+    "-" +
+    pad(now.getHours()) +
+    pad(now.getMinutes()) +
+    ".json";
+
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  alert("✅ Fichier exporté.\nVous pouvez maintenant le communiquer (email, message, clé USB…) vers un autre appareil.");
+}
+
+function parseExportPayload(text) {
+  let obj;
+  try {
+    obj = JSON.parse(text);
+  } catch (e) {
+    alert("❌ Fichier invalide : JSON non lisible.");
+    return null;
+  }
+
+  // Cas “officiel” v1
+  if (obj && obj.schema === "dhkc-export") {
+    const data = obj.data || {};
+    if (!Array.isArray(data.children)) {
+      alert("❌ Fichier DHKC invalide : 'data.children' manquant ou incorrect.");
+      return null;
+    }
+    return {
+      children: data.children,
+      currentChild: typeof data.currentChild === "number" ? data.currentChild : 0
+    };
+  }
+
+  // Backward compat : on accepte aussi un export brut {children:[...]}
+  if (Array.isArray(obj.children)) {
+    return {
+      children: obj.children,
+      currentChild: typeof obj.currentChild === "number" ? obj.currentChild : 0
+    };
+  }
+
+  alert("❌ Ce fichier ne semble pas être un export DHKC valide.");
+  return null;
+}
+
+function handleImportAllMerge(event) {
+  const file = event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const parsed = parseExportPayload(e.target.result);
+    if (!parsed) return;
+
+    const importedChildren = parsed.children || [];
+    if (!importedChildren.length) {
+      alert("Aucun enfant dans le fichier à fusionner.");
+      return;
+    }
+
+    if (!confirm(
+      "Les données du fichier vont être fusionnées avec vos enfants existants.\n" +
+      "- Même prénom (et âge/genre compatibles) → données fusionnées.\n" +
+      "- Autres enfants → ajoutés à la suite.\n\n" +
+      "Aucune donnée actuelle ne sera supprimée.\nContinuer ?"
+    )) {
+      return;
+    }
+
+    if (!children) children = [];
+
+    let mergedCount = 0;
+    let addedCount = 0;
+
+    importedChildren.forEach((impChild) => {
+      const idx = findMatchingChildIndex(impChild);
+      if (idx === -1) {
+        // Nouvel enfant → on l'ajoute tel quel
+        children.push(impChild);
+        addedCount++;
+      } else {
+        // Fusion smart avec l'enfant existant
+        mergeChildData(children[idx], impChild);
+        mergedCount++;
+      }
+    });
+
+    saveChildren();
+    majUI();
+    showView("vue-accueil");
+
+    alert(
+      "✅ Fusion terminée.\n" +
+      `- ${mergedCount} enfant(s) fusionné(s) avec des profils existants.\n` +
+      `- ${addedCount} nouvel(aux) enfant(s) ajouté(s).`
+    );
+  };
+  reader.readAsText(file);
+}
+
+
+
+function handleImportAllReplace(event) {
+  const file = event.target.files[0];
+  event.target.value = ""; // permet de re-sélectionner le même fichier plus tard
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const parsed = parseExportPayload(e.target.result);
+    if (!parsed) return;
+
+    if (!confirm("⚠️ Ceci va remplacer TOUTES les données actuelles (tous les enfants, tâches, historique).\nContinuer ?")) {
+      return;
+    }
+
+    children = parsed.children || [];
+    currentChild = parsed.currentChild || 0;
+
+    // On persiste dans localStorage
+    saveChildren();
+    // On s'assure que currentChild reste dans le range
+    currentChild = Math.min(currentChild, Math.max(children.length - 1, 0));
+
+    majUI();
+    showView("vue-accueil");
+    alert("✅ Import terminé.\nToutes les données ont été remplacées par celles du fichier.");
+  };
+  reader.readAsText(file);
+}
+
+
 function handleImportChild(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
@@ -257,18 +430,22 @@ function setWeekTitle(){
 }
 
 function setChildHeaders(){
-  const n = getChild().settings.childName || "Mon enfant";
+  const child = getChild();
+  if (!child) return; // ✅ aucun enfant → on ne fait rien
+
+  const n = child.settings.childName || "Mon enfant";
   const day    = document.getElementById("currentChild_day");
   const month  = document.getElementById("currentChild_month");
   const task   = document.getElementById("currentChild_tasks");
-  const reward = document.getElementById("currentChild_rewards"); // 🔹 nouveau
+  const reward = document.getElementById("currentChild_rewards");
   if(day) day.textContent = n;
   if(month) month.textContent = n;
   if(task) task.textContent = n;
-  if(reward) reward.textContent = n; // 🔹 nouveau
+  if(reward) reward.textContent = n;
   const title = document.getElementById("childTitle");
   if(title) title.textContent = "Résultats - " + n;
 }
+
 
 
 // Renvoie le nom du jour courant (en fonction de currentDate), ex : "Lundi"
@@ -859,7 +1036,7 @@ function renderHome(){
   }
 
   // Mode "Récapitulatif"
-  title.textContent = "Récapitulatif par enfant";
+  title.textContent = "Bilan semaine";
   if(subtitle) subtitle.style.display = "none";
   if(illustration) illustration.style.display = "none";
   hero.style.display = "";         // on garde le titre
@@ -1072,9 +1249,23 @@ window.switchTab = switchTab;
 
 function majUI(){
   rebuildSidebar();
+  renderHome();
+
+  // ✅ Si aucun enfant, on arrête là (pas de calculs, pas d’accès à getChild)
+  if (!children || children.length === 0) {
+    // On force l’accueil comme vue principale
+    showView("vue-accueil");
+
+    // On (re)branche quand même les boutons de maintenance
+    document.getElementById("btnResetChildren")?.addEventListener("click", resetAllChildren);
+    document.getElementById("btnPurgeAll")?.addEventListener("click", purgeAll);
+    return;
+  }
+
+  // ======= À partir d’ici, on sait qu’il y a au moins 1 enfant =======
   setWeekTitle();
   setChildHeaders();
-  setCurrentDayLabel();     // 🔹 Affiche le jour courant sous "Semaine" (vue Jour)
+  setCurrentDayLabel();
   majVueJour();
   majAvancementJournee();
   majVueMois();
@@ -1082,17 +1273,16 @@ function majUI(){
   renderRadials();
   syncCustomWeekIfVisible();
 
-  // 🔹 NOUVEAU : rafraîchir la page d’accueil selon présence d’enfants
-  renderHome();
-  // ✅ Réattacher les boutons de maintenance à chaque reconstruction
+  // 🔹 (re)branche les boutons
   document.getElementById("btnResetChildren")?.addEventListener("click", resetAllChildren);
   document.getElementById("btnPurgeAll")?.addEventListener("click", purgeAll);
+
   // Si aucune vue active, afficher la page d’accueil par défaut
-if (!document.querySelector(".view.active")) {
-  showView("vue-accueil");
+  if (!document.querySelector(".view.active")) {
+    showView("vue-accueil");
+  }
 }
 
-}
 
 /* ===== Nom & Avatar ===== */
 function openNameAvatar(i){
@@ -1255,6 +1445,193 @@ function notesSwapRowsForAllWeeks(child, i, j){
     }
   }
 }
+
+function normalizeName(str) {
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function findMatchingChildIndex(importedChild) {
+  if (!importedChild || !importedChild.settings) return -1;
+
+  const nameImp = normalizeName(importedChild.settings.childName || "");
+  if (!nameImp) return -1;
+
+  const ageImp = importedChild.settings.age ?? null;
+  const genderImp = importedChild.settings.gender || null;
+
+  for (let i = 0; i < children.length; i++) {
+    const c = children[i];
+    if (!c || !c.settings) continue;
+
+    const nameCur = normalizeName(c.settings.childName || "");
+    if (!nameCur || nameCur !== nameImp) continue;
+
+    const ageCur = c.settings.age ?? null;
+    const genderCur = c.settings.gender || null;
+
+    // Si les deux ont un âge, il doit matcher
+    if (ageImp !== null && ageCur !== null && ageImp !== ageCur) continue;
+
+    // Si les deux ont un genre, il doit matcher
+    if (genderImp && genderCur && genderImp !== genderCur) continue;
+
+    return i;
+  }
+  return -1;
+}
+
+function mergeChildSettings(target, source) {
+  if (!target.settings) target.settings = {};
+  if (!source.settings) return;
+
+  const t = target.settings;
+  const s = source.settings;
+
+  // On garde ce qui existe côté target, on complète avec source si vide
+  if (!t.childName && s.childName) t.childName = s.childName;
+  if (!t.avatar && s.avatar) {
+    t.avatar = s.avatar;
+    if (s.avatarName) t.avatarName = s.avatarName;
+  }
+  if ((t.age === null || t.age === undefined) && (s.age !== null && s.age !== undefined)) {
+    t.age = s.age;
+  }
+  if (!t.gender && s.gender) t.gender = s.gender;
+
+  // Récompenses globales : on ne remplace pas ce qui est renseigné
+  if (!t.rewardLow && s.rewardLow) t.rewardLow = s.rewardLow;
+  if (!t.rewardHigh && s.rewardHigh) t.rewardHigh = s.rewardHigh;
+  if ((t.thresholdLow === undefined || t.thresholdLow === null) && s.thresholdLow !== undefined) {
+    t.thresholdLow = s.thresholdLow;
+  }
+  if ((t.thresholdHigh === undefined || t.thresholdHigh === null) && s.thresholdHigh !== undefined) {
+    t.thresholdHigh = s.thresholdHigh;
+  }
+}
+
+function mergeRewardsByWeek(target, source) {
+  if (!source.rewardsByWeek) return;
+  if (!target.rewardsByWeek) target.rewardsByWeek = {};
+
+  for (const [week, arr] of Object.entries(source.rewardsByWeek)) {
+    if (!Array.isArray(arr) || !arr.length) continue;
+    if (!Array.isArray(target.rewardsByWeek[week])) {
+      target.rewardsByWeek[week] = [];
+    }
+    const destArr = target.rewardsByWeek[week];
+
+    arr.forEach(r => {
+      if (!r) return;
+      const rewardTxt = (r.reward || "").trim();
+      const pal = (r.palier || "").trim();
+      if (!rewardTxt) return;
+
+      const exists = destArr.some(x =>
+        (x.reward || "").trim() === rewardTxt &&
+        (x.palier || "").trim() === pal
+      );
+      if (!exists) destArr.push({ reward: rewardTxt, palier: pal });
+    });
+  }
+}
+
+function mergeHistory(target, source) {
+  if (!source.history || !Array.isArray(source.history)) return;
+  if (!target.history || !Array.isArray(target.history)) target.history = [];
+
+  const existingWeeks = new Set(target.history.map(h => h.week));
+  source.history.forEach(h => {
+    if (!h || !h.week) return;
+    if (!existingWeeks.has(h.week)) {
+      target.history.push(h);
+      existingWeeks.add(h.week);
+    }
+  });
+}
+
+function mergeTasksAndNotes(target, source) {
+  if (!target.tasks) target.tasks = [];
+  if (!target.notes) target.notes = {};
+  if (!source.tasks) source.tasks = [];
+  if (!source.notes) source.notes = {};
+
+  const targetTasks = target.tasks;
+  const sourceTasks = source.tasks;
+
+  // Map nom normalisé -> index dans target
+  const nameToIndex = {};
+  targetTasks.forEach((t, i) => {
+    const n = normalizeName(t.name || "");
+    if (n) nameToIndex[n] = i;
+  });
+
+  // mapping : index source -> index target
+  const mapping = [];
+
+  sourceTasks.forEach((tSrc, srcIdx) => {
+    const norm = normalizeName(tSrc.name || "");
+    if (!norm) return;
+
+    if (norm in nameToIndex) {
+      // tâche déjà existante → on utilise l'index existant
+      mapping[srcIdx] = nameToIndex[norm];
+      // on pourrait fusionner les weights ici si besoin
+    } else {
+      // nouvelle tâche → on l'ajoute
+      const newIndex = targetTasks.length;
+      targetTasks.push({
+        name: tSrc.name,
+        weights: Array.isArray(tSrc.weights) ? tSrc.weights.slice() : [1,1,1,1,1,0,0]
+      });
+      // on ajoute une ligne de notes vide pour toutes les semaines déjà présentes
+      notesAppendRowForAllWeeks(target);
+      nameToIndex[norm] = newIndex;
+      mapping[srcIdx] = newIndex;
+    }
+  });
+
+  // Maintenant on fusionne les notes
+  for (const [weekKey, srcRows] of Object.entries(source.notes)) {
+    if (!Array.isArray(srcRows)) continue;
+
+    // S'assure que target.notes[weekKey] existe et a la bonne taille
+    ensureNotesForWeek(target, weekKey);
+
+    const tgtRows = target.notes[weekKey];
+
+    srcRows.forEach((rowSrc, srcIdx) => {
+      const tgtIdx = mapping[srcIdx];
+      if (tgtIdx === undefined || tgtIdx === null) return;
+      if (!Array.isArray(rowSrc) || rowSrc.length !== 7) return;
+
+      // S'assure que la ligne existe côté target
+      if (!Array.isArray(tgtRows[tgtIdx]) || tgtRows[tgtIdx].length !== 7) {
+        tgtRows[tgtIdx] = [0,0,0,0,0,0,0];
+      }
+
+      for (let d = 0; d < 7; d++) {
+        const vExisting = parseFloat(tgtRows[tgtIdx][d]) || 0;
+        const vImported = parseFloat(rowSrc[d]) || 0;
+        // On garde le meilleur des deux
+        const merged = Math.max(vExisting, vImported);
+        tgtRows[tgtIdx][d] = merged;
+      }
+    });
+  }
+}
+
+function mergeChildData(target, source) {
+  if (!target || !source) return;
+
+  mergeChildSettings(target, source);
+  mergeTasksAndNotes(target, source);
+  mergeRewardsByWeek(target, source);
+  mergeHistory(target, source);
+}
+
 
 function openTaskManager(i){
   selectChild(i);
@@ -1731,3 +2108,6 @@ window.purgeAll = purgeAll;
 window.addWeeklyReward = addWeeklyReward;
 window.renderCustomRewards = renderCustomRewards;
 window.deleteWeeklyReward = deleteWeeklyReward;
+window.exportAllData = exportAllData;
+window.handleImportAllReplace = handleImportAllReplace;
+window.handleImportAllMerge = handleImportAllMerge;

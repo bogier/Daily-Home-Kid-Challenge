@@ -35,6 +35,18 @@
     </ul>
 
     <input id="importChildInput" type="file" accept="application/json" style="display:none" onchange="handleImportChild(event)">
+	<input id="importAllReplaceInput"
+       type="file"
+       accept="application/json"
+       style="display:none"
+       onchange="handleImportAllReplace(event)">
+
+    <input id="importAllMergeInput"
+       type="file"
+       accept="application/json"
+       style="display:none"
+       onchange="handleImportAllMerge(event)">
+
     <ul id="childrenList" class="nav-list children-list"></ul>
   </div>
 
@@ -65,13 +77,28 @@
   <img src="icons/importerExemple.png" alt="Importer l'exemple" class="icon-importer-exemple">
   <span>Importer l'exemple</span>
 </li>
+<li class="sidebar-link menu-exporter" onclick="exportAllData()">
+  <img src="icons/exporter.png" alt="Exporter tout" class="icon-exporter">
+  <span>Exporter tout</span>
+</li>
+
+<li class="sidebar-link menu-importer" onclick="document.getElementById('importAllReplaceInput').click()">
+  <img src="icons/importer.png" alt="Importer tout et remplacer" class="icon-importer">
+  <span>Importer tout - remplacer</span>
+</li>
+
+<li class="sidebar-link menu-importer" onclick="document.getElementById('importAllMergeInput').click()">
+  <img src="icons/importer.png" alt="Importer tout et fusionner" class="icon-importer">
+  <span>Importer tout - fusionner</span>
+</li>
+
 <li id="btnResetChildren" class="sidebar-link menu-reset">
   <img src="icons/ReinitialiserEnfants.PNG" alt="Réinitialiser les enfants" class="icon-reset">
   <span>Réinitialiser les enfants</span>
 </li>
 <li id="btnPurgeAll" class="sidebar-link menu-purge">
-  <img src="icons/PurgeTotale.PNG" alt="Purge totale" class="icon-purge">
-  <span>Purge totale</span>
+  <img src="icons/PurgeTotale.PNG" alt="Tout supprimer" class="icon-purge">
+  <span>Tout supprimer</span>
 </li>        
 <li>
   <a href="about.html" class="sidebar-link menu-apropos">
