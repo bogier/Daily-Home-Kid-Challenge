@@ -730,12 +730,12 @@ function updateWeeklyRewardBanners(pctWeek, cfg){
   const show2 = (pctWeek >= cfg.t2) && !!cfg.r2?.trim();
 
   if (show1 && b1){
-    b1.innerHTML = `🎉 <span class="badge">Palier 1</span> ${cfg.r1} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
+    b1.innerHTML = `<span class="badge">Palier 1</span> ${cfg.r1} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
     b1.classList.remove('hidden'); b1.classList.add('palier-1','pop');
     setTimeout(()=> b1.classList.remove('pop'), 300);
   }
   if (show2 && b2){
-    b2.innerHTML = `🏆 <span class="badge">Palier 2</span> ${cfg.r2} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
+    b2.innerHTML = `<span class="badge">Palier 2</span> ${cfg.r2} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
     b2.classList.remove('hidden'); b2.classList.add('palier-2','pop');
     setTimeout(()=> b2.classList.remove('pop'), 300);
   }
@@ -781,10 +781,10 @@ if (Array.isArray(customRewards) && customRewards.length > 0) {
   palier = customRewards.map(r => r.palier).join(", ");
 } else {
   if (pct >= (child.settings.thresholdHigh || 50) && child.settings.rewardHigh) {
-    reward = `🏆 ${child.settings.rewardHigh}`;
+    reward = `${child.settings.rewardHigh}`;
     palier = "Palier 2";
   } else if (pct >= (child.settings.thresholdLow || 30) && child.settings.rewardLow) {
-    reward = `🎁 ${child.settings.rewardLow}`;
+    reward = `${child.settings.rewardLow}`;
     palier = "Palier 1";
   }
 }
@@ -1051,7 +1051,7 @@ function renderHome(){
 
   if(!hasChildren){
     // Mode "Bienvenue"
-    title.textContent = "Bienvenue dans le Daily Home Kid Challenge 🎉";
+    title.textContent = "Bienvenue dans le Daily Home Kid Challenge";
     if(subtitle) subtitle.style.display = "";
     if(illustration) illustration.style.display = "";
     list.style.display = "none";

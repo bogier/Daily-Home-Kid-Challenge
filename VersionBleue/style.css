@@ -1350,7 +1350,7 @@ body.install-page .sidebar.show {
 }
 
 .calendar-title h2::before {
-  content: "\1F4C5"; /* symbole Unicode 📅 */
+  /*content: "\1F4C5"; /* symbole Unicode 📅 */
   margin-right: 0.4rem;
   font-size: 1.2em;
   vertical-align: middle;
@@ -1418,7 +1418,7 @@ body.install-page .sidebar.show {
 
 /* === Icône calendrier devant la date === */
 .calendar-title h2::before {
-  content: "📅";
+ /* content: "📅"; */
   margin-right: 0.4rem;
   font-size: 1.1em;
   vertical-align: middle;
