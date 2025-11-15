@@ -1,0 +1,1279 @@
+:root {
+  --primary: #12468B;        /* bleu foncé */
+  --primary-light: #4a90e2;  /* bleu clair */
+  --secondary: #1e63d1;      /* accent bleu */
+  --danger: #e53935;
+  --bg-light: #f7f8fb;
+  --card-bg: #fff;
+  --radius: 12px;
+  --shadow: 0 4px 10px rgba(0,0,0,0.08);
+  --font-main: 'Open Sans', Arial, sans-serif;
+  --text-color: #12468B;     /* bleu marine */
+}
+
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family: var(--font-main); background: var(--bg-light); color: var(--text-color); }
+button { cursor:pointer; }
+img { max-width:100%; }
+
+h1,h2,h3,h4,h5,h6, p, td, th, li, button {
+  color: var(--text-color);
+}
+
+/* ========= HEADER ========= */
+.app-header {
+  display:flex; align-items:center;
+  padding:.8rem;
+  background:#fff;
+  box-shadow:var(--shadow);
+}
+.app-header h1 { flex:1; text-align:center; font-size:1.1rem; }
+.menu-btn { background:none; border:none; font-size:1.6rem; color:var(--primary); }
+
+/* ========= SIDEBAR ========= */
+.sidebar {
+  position:fixed; top:0; left:0;
+  width:280px; height:100%;
+  background: linear-gradient(
+    180deg,
+    #0a2a52 0%,
+    #12468B 40%,
+    #4a90e2 100%
+  );
+  color:#fff;
+  transform:translateX(-100%);
+  transition:.3s;
+  z-index:200;
+  display:flex; flex-direction:column;
+}
+.sidebar.show { transform:translateX(0); }
+.sidebar h2 { padding:1rem; font-size:1.2rem; }
+.sidebar-grabber {
+  width:40px; height:5px;
+  background:rgba(255,255,255,0.6);
+  border-radius:3px; margin:.5rem auto;
+}
+.sidebar-content { flex:1; overflow-y:auto; }
+
+.nav-list { list-style:none; padding:0; }
+.nav-list li { padding:.9rem 1rem; cursor:pointer; }
+.nav-list li:hover { background:rgba(255,255,255,.15); }
+
+.nav-list li.quick {
+  padding:.5rem 1rem;
+  font-size:.9rem;
+  opacity:0.9;
+}
+
+.avatar {
+  width:24px; height:24px;
+  border-radius:50%;
+  margin-right:.3rem;
+}
+
+.child-accordion.active h3 {
+  background:rgba(255,255,255,0.15);
+  border-left:3px solid var(--secondary);
+}
+.child-accordion.active h3::after {
+  content:"Actif";
+  font-size:.65rem;
+  color:#fff;              /* 🔹 blanc au lieu de bleu */
+  margin-left:.3rem;
+  font-weight:bold;
+}
+
+
+.child-accordion {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin: 0;                    /* 🔹 supprime la marge par défaut */
+  padding: 0;                   /* 🔹 aucun padding vertical global */
+}
+
+/* Harmonisation du style des noms d'enfants avec les éléments rapides (ex: 'Ajouter un enfant') */
+/* 🔹 Avatars dans la sidebar (liste enfants + accordéons) */
+/* 🔹 Avatars dans la sidebar (liste enfants + accordéons) */
+.child-accordion h3 img.avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* 🔹 Ajustement du header enfant pour bon centrage */
+.child-accordion h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  line-height: 1.25;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+
+
+.child-accordion h3:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+
+.child-accordion .options {
+  display:none;
+  flex-direction:column;
+  background:rgba(255,255,255,0.05);
+}
+.child-accordion.open .options { display:flex; flex-direction:column; }
+
+.child-accordion .options li {
+  padding: .1rem .6rem;
+  font-size: 0.72rem;                 /* 🔹 identique au nom */
+  line-height: 1.05;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  min-height: 20px;
+  color: #fff !important;             /* 🔹 même couleur blanche */
+  font-family: var(--font-main);      /* 🔹 même police que le nom */
+  letter-spacing: 0.01em;
+  transition: background .3s, transform .15s;
+}
+
+.child-accordion .options li:hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateX(2px);         /* 🔹 petit glissement fluide au survol */
+}
+
+
+.child-accordion .options li:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.child-accordion .options li:last-child { border-bottom:none; }
+
+/* ✅ Forcer l’écriture en blanc dans la sidebar */
+.sidebar,
+.sidebar h2,
+.sidebar .nav-list li,
+.sidebar .nav-list li.quick,
+.sidebar .child-accordion h3,
+.sidebar .child-accordion .options li {
+  color:#fff !important;
+}
+
+/* ========= VUES ========= */
+.view { display:none; padding:1rem; }
+.view.active { display:block; }
+.view-header { display:flex; justify-content:space-between; align-items:center; padding:.6rem; flex-direction:column; gap:.4rem; }
+
+/* ========= TABS ========= */
+.tabs { 
+  display:flex; 
+  gap:.4rem; 
+  justify-content:center; 
+  align-items:center; /* 🔹 pour aligner le jour avec les boutons */
+}
+.tabs button {
+  border:none;
+  padding:.5rem .9rem;
+  border-radius:var(--radius);
+  background:#e5e7eb;
+  color: var(--text-color);
+  transition: background .3s, color .3s;
+}
+.tabs button.active {
+  background: var(--primary);
+  color:#fff;   /* ✅ bouton actif reste bleu marine */
+}
+
+.day-label {
+  font-size:0.9rem;
+  font-weight:600;
+  margin-left:.6rem;
+  color: var(--primary);
+  text-transform:capitalize;
+}
+
+.table-wrapper { overflow-x:auto; }
+table {
+  width:100%; border-collapse:collapse;
+  background:var(--card-bg);
+  box-shadow:var(--shadow);
+}
+th,td {
+  border:1px solid #ddd;
+  padding:.6rem;
+  text-align:center;
+  font-size:.9rem;
+}
+thead th { background:#f1f5f9; }
+
+/* ========= CALENDRIER ========= */
+.calendar {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.6rem;
+  flex:1;
+}
+.calendar-title h2 {
+  font-size:0.85rem;   /* encore plus petit */
+  font-weight:600;
+}
+.calendar-title p {
+  font-size:0.7rem;
+  margin-top:0.15rem;
+}
+
+/* ✅ Nom de l’enfant au-dessus des boutons */
+.current-child {
+  text-align:center;
+  font-size:0.9rem;
+  font-weight:600;
+  margin:0.3rem 0;
+}
+
+.calendar-month {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:4px; padding:.5rem;
+}
+.calendar-cell {
+  background:#fff;
+  border-radius:8px;
+  min-height:60px;
+  padding:.4rem;
+  box-shadow:var(--shadow);
+  position:relative;
+}
+.calendar-cell .date {
+  position:absolute;
+  top:4px; right:6px;
+  font-size:.7rem; color:#666;
+}
+.calendar-cell .percent {
+  text-align:center;
+  font-weight:600;
+  margin-top:1rem;
+}
+
+.calendar-cell.today {
+  background: #b6f2c0;   /* vert très clair */
+  color: #12468B;        /* texte bleu marine */
+  font-weight: bold;
+}
+
+.calendar-cell.past {
+  background: #d6eaff;   /* bleu très clair */
+  color: #12468B;        /* texte bleu marine */
+}
+
+
+
+/* ========= RESULTATS + PUZZLE ========= */
+.result-actions {
+  display:flex; justify-content:center; gap:1rem; margin-bottom:.6rem;
+}
+.result-actions button {
+  border:none; border-radius:50%;
+  width:42px; height:42px;
+  color:#fff; font-size:1.3rem;
+  background:var(--primary);
+}
+.result-actions button.delete { background:var(--danger); }
+
+.puzzle-container {
+  position:relative; display:grid;
+  width:100%; max-width:400px;
+  aspect-ratio:1/1;
+  border-radius:var(--radius);
+  overflow:hidden; margin:auto;
+  box-shadow:var(--shadow);
+}
+.puzzle-piece { background:rgba(255,255,255,.95); transition:all .6s; }
+.puzzle-piece.revealed { opacity:0; transform:scale(.9); }
+
+.progress-container {
+  width:100%; max-width:400px; height:10px;
+  background:#eee; border-radius:5px;
+  margin:1rem auto;
+}
+.progress-bar {
+  height:100%; width:0;
+  background:var(--secondary);
+  transition:width .4s;
+}
+
+/* ========= HISTORIQUE ========= */
+.row-average {
+  background:#f1f5f9;
+  font-weight:bold;
+  color:var(--primary);
+}
+
+/* ========= OVERLAY ========= */
+#overlay {
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.4);
+  display:none;
+  z-index:150;
+    pointer-events: none;
+  transition: background 0.3s;
+}
+#overlay.show { 
+	display:block;
+	  pointer-events: auto;
+	background: rgba(0, 0, 0, 0.3);
+	}
+
+/* ========= parametres enfants =========== */
+.param-section {
+  background: var(--card-bg);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.param-section label {
+  display:block;
+  margin-top:.5rem;
+  font-weight:bold;
+}
+
+.param-section input[type=text],
+.param-section input[type=number] {
+  width: 100%;
+  padding: .4rem;
+  margin: .3rem 0;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+}
+
+.avatar-upload {
+  display:flex;
+  align-items:center;
+  gap:.8rem;
+  margin-top:.5rem;
+}
+.task-add {
+  display:flex;
+  gap:.5rem;
+  margin-top:.5rem;
+}
+.task-add input {
+  flex:1;
+}
+
+#taskList {
+  list-style:none;
+  padding:0;
+}
+
+#taskList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .25rem 0;
+}
+
+/* 🔹 Boutons d'action (monter/descendre/supprimer) */
+#taskList li span {
+  display: flex;
+  gap: .1rem;                 /* 🔸 espace ultra-serré entre icônes */
+  align-items: center;
+  justify-content: flex-end;
+  margin-right: 0;            /* 🔸 collé à la droite */
+}
+
+#taskList li button {
+  background: none;           /* 🔸 plus de fond */
+  color: var(--primary);
+  border: none;
+  padding: 0 .15rem;          /* 🔸 très compact */
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform .2s, color .3s;
+}
+
+#taskList li button:hover {
+  transform: scale(1.15);
+  color: var(--secondary);
+}
+
+
+#taskList li button {
+  background: none;            /* 🔹 plus de fond rouge */
+  color: var(--primary);       /* 🔹 icônes bleues pour cohérence */
+  border: none;
+  padding: .2rem .4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform .2s, color .3s;
+}
+
+#taskList li button:hover {
+  transform: scale(1.1);
+  color: var(--secondary);     /* 🔹 bleu clair au survol */
+}
+
+
+.param-actions {
+  display:flex;
+  justify-content:space-between;
+  margin-top:1rem;
+}
+.param-actions .save {
+  background: var(--primary);
+  color:#fff;
+  border:none;
+  padding:.5rem 1rem;
+  border-radius: var(--radius);
+  cursor:pointer;
+}
+
+/* ========= BOUTON RETOUR ========= */
+.back-btn {
+  background: var(--primary);
+  color: #fff !important;
+  border: none;
+  border-radius: var(--radius);
+  padding: .5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background .3s;
+}
+
+.back-btn:hover {
+  background: var(--secondary);
+}
+
+/* ========= RATING CELL ========= */
+.rating-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.2rem;      /* petit espace uniforme */
+  font-size: 0.9rem; /* icônes réduites */
+}
+
+/* Inputs invisibles mais actifs */
+.rating-cell input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.rating-cell label {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 6px;
+  transition: transform .2s, opacity .2s, background .2s, border .2s;
+  opacity: 0.4;              /* par défaut un peu visibles */
+  border: 2px solid transparent;
+}
+
+/* Quand coché → bien visible + fond coloré + contour gris */
+.rating-cell input[value="0"]:checked + label {
+  opacity: 1;
+  background: #fdecea;   /* rouge clair */
+  border: 2px solid #aaa;
+}
+.rating-cell input[value="0.5"]:checked + label {
+  opacity: 1;
+  background: #fff4e5;   /* orange clair */
+  border: 2px solid #aaa;
+}
+.rating-cell input[value="1"]:checked + label {
+  opacity: 1;
+  background: #e8f5e9;   /* vert clair */
+  border: 2px solid #aaa;
+}
+
+/* Effet hover */
+.rating-cell label:hover {
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+
+/* Vue Jour : variante compacte sur une ligne centrée */
+#vue-jour .rating-cell,
+#vue-semaine .rating-cell {
+  display: flex;
+  justify-content: center;   /* centrage horizontal */
+  align-items: center;
+  gap: 0.2rem;               /* petit espace homogène */
+  font-size: 0.9rem;         /* taille réduite */
+}
+
+#vue-jour .rating-cell label,
+#vue-semaine .rating-cell label {
+  padding: 0 3px;            /* espace minimal autour de l’icône */
+  display: inline-flex;      /* garder bien centré */
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-top: .5rem;
+}
+
+.avatar-frame {
+  padding: 6px;
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  background: #fff;
+  display: inline-block;
+  box-shadow: var(--shadow);
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-wrapper img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  object-fit: cover;
+}
+
+.delete-avatar-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background .3s;
+}
+
+.delete-avatar-btn:hover {
+  background: #c62828;
+}
+
+.avatar-filename {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.4rem;
+  text-align: left;
+}
+
+/* ===== Avatars uniformisés ===== */
+/* ===== Avatars ===== */
+
+/* Petits avatars : sidebar + entêtes */
+.avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Grand avatar : vue Nom & Avatar */
+.avatar-large {
+  width: 150px;
+  height: 150px;
+  min-width: 150px;
+  min-height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: auto;
+  box-shadow: var(--shadow);
+  border: 2px solid #ddd;
+  flex: 0 0 150px; /* 🔹 empêche flexbox de rétrécir */
+}
+
+/* Contexte Nom & Avatar */
+#vue-nom-avatar .avatar-upload {
+  align-items: flex-start;
+  gap: 1rem;
+}
+#vue-nom-avatar .avatar-frame {
+  flex: 0 0 auto;
+}
+#vue-nom-avatar input[type="file"] {
+  flex: 1 1 auto;
+  min-width: 0; /* pour que l’input s’adapte sans écraser l’image */
+}
+
+/* === FINAL AVATAR FIX === */
+/* Prevent flexbox from shrinking the preview image */
+#vue-nom-avatar .avatar-upload { align-items: flex-start; gap: 1rem; }
+#vue-nom-avatar .avatar-frame { flex: 0 0 auto !important; }
+#vue-nom-avatar input[type="file"] {
+  flex: 1 1 auto;
+  min-width: 0;                 /* allow the input to shrink instead of shrinking the image */
+}
+
+.sidebar-footer {
+  margin-top: auto;             /* pousse le footer vers le bas */
+  padding: 1rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-separator {
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.3);
+  margin-bottom: 0.6rem;
+}
+
+.sidebar-link {
+  color: #fff !important;
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  transition: opacity .3s;
+}
+
+.sidebar-link:hover {
+  opacity: 1;
+}
+
+/* === Harmonisation visuelle du footer === */
+.footer-actions {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.4rem 0;
+}
+
+/* Appliquer le même style aux <li> et <a> */
+.footer-actions .sidebar-link,
+.sidebar-footer .sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;              /* espace entre l’icône et le texte */
+  text-decoration: none;
+  color: #fff !important;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  transition: opacity .3s;
+  cursor: pointer;
+  padding: 0.3rem 0.8rem 0.3rem 1.3rem; /* 🔹 même padding gauche pour aligner les icônes */
+}
+
+/* Uniformiser le survol */
+.footer-actions .sidebar-link:hover,
+.sidebar-footer .sidebar-link:hover {
+  opacity: 1;
+}
+
+/* Liseré et espacement footer */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-separator {
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.3);
+  margin: 0.5rem 0;
+}
+
+
+/* 🔹 Masque le bouton "Annuler" sur les vues Nom & Avatar, Tâches, Récompenses */
+#vue-nom-avatar .param-actions button:first-child,
+#vue-taches .param-actions button:first-child,
+#vue-recompenses .param-actions button:first-child {
+  display: none !important;
+}
+
+/* 🔹 Masque le bouton "Enregistrer" dans la vue Récompenses */
+#vue-recompenses .param-actions .save {
+  display: none !important;
+}
+
+/* ✅ Fix overlay cliquable sur la page install */
+body.install-page #overlay.show {
+  display: block;
+  z-index: 1000;            /* sous la sidebar, au-dessus du contenu */
+  pointer-events: auto;     /* permet les clics sur l’overlay */
+  background: rgba(0,0,0,0.35);
+}
+
+/* ✅ La sidebar doit rester interactive même quand l’overlay est actif */
+body.install-page .sidebar.show {
+  z-index: 1100;            /* au-dessus de l’overlay */
+  pointer-events: auto;
+}
+
+/* === Footer compact : A propos / Installer l’app === */
+
+/* Resserre encore plus le duo de liens */
+.sidebar-footer .about-link,
+.sidebar-footer .install-link {
+  margin-bottom: 0;          /* plus aucune marge verticale */
+  line-height: 1;            /* texte plus dense */
+  padding-top: 0.15rem;      /* petit espace interne haut */
+  padding-bottom: 0.15rem;   /* petit espace interne bas */
+}
+
+/* Supprime totalement l'écart entre les deux lignes */
+.sidebar-footer .about-link + .install-link {
+  margin-top: -0.25rem;      /* resserre encore le duo */
+}
+
+/* Optionnel : allège un peu la hauteur globale du footer */
+.sidebar-footer {
+  gap: 0.3rem;               /* au lieu de 0.5rem */
+}
+
+/* === Ajustement final du footer sidebar === */
+
+/* Alignement + compactage des actions */
+.footer-actions {
+  margin-bottom: 0.2rem;  /* espace réduit entre “Purge totale” et le liseré */
+}
+
+.footer-actions .sidebar-link:last-child {
+  margin-bottom: 0;       /* supprime la marge basse inutile */
+}
+
+/* Liseré plus proche du bloc du dessus */
+.sidebar-separator {
+  margin-top: 0.2rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Resserre le duo A propos / Installer l’app */
+.sidebar-footer .about-link,
+.sidebar-footer .install-link {
+  margin-bottom: 0;
+  line-height: 1;
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+}
+
+.sidebar-footer .about-link + .install-link {
+  margin-top: -0.25rem;
+}
+
+.sidebar-footer {
+  gap: 0.3rem;
+}
+/* === Accordéon Paramètres (footer) === */
+#parametresAccordion {
+  border-top: 1px solid rgba(255,255,255,0.2);
+  border-bottom: none;
+  margin-top: 0.5rem;
+}
+
+#parametresAccordion h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+#parametresAccordion h3:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+#parametresAccordion .arrow {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+#parametresAccordion .options {
+  display: none;
+  flex-direction: column;
+  background: rgba(255,255,255,0.05);
+  margin-top: 0.3rem;
+  border-radius: 6px;
+}
+
+#parametresAccordion.open .options {
+  display: flex;
+}
+
+#parametresAccordion .options li {
+  padding: 0.3rem 1.2rem;
+  font-size: 0.85rem;
+  color: #fff;
+  transition: background 0.3s, transform 0.15s;
+}
+
+#parametresAccordion .options li:hover {
+  background: rgba(255,255,255,0.12);
+  transform: translateX(2px);
+}
+
+/* === Uniformisation des noms d'enfants dans la sidebar === */
+.child-accordion h3 {
+  font-family: var(--font-main);   /* même police que "Accueil" */
+  font-size: 1rem;                 /* taille légèrement augmentée */
+  font-weight: 600;                /* plus lisible */
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+/* Ajuste aussi la taille des options internes (ex: Nom et avatar, Récompenses…) */
+.child-accordion .options li {
+  font-size: 0.85rem;              /* un peu plus grand */
+  font-family: var(--font-main);
+}
+
+/* Harmonisation du bouton Accueil (pour cohérence visuelle) */
+.nav-list li {
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* === Accentuation de l’enfant actif dans la sidebar === */
+
+/* Bordure + halo clair autour du nom actif */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.2);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 6px rgba(255,255,255,0.25);
+}
+
+/* Texte du nom légèrement plus lumineux */
+.child-accordion.active h3 span {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+
+/* Flèche (▼) du bloc actif devient blanche brillante */
+.child-accordion.active h3 .arrow {
+  color: #fff;
+  opacity: 1;
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+
+/* Animation douce de la flèche au clic */
+.child-accordion.open h3 .arrow {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+/* === Noms d’enfants dans la sidebar === */
+.child-accordion h3 {
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 400;            /* 🔹 gras faible pour tous les enfants */
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+/* === Enfant actif : mise en valeur renforcée === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.2);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 6px rgba(255,255,255,0.25);
+}
+
+.child-accordion.active h3 span {
+  color: #ffffff;
+  font-weight: 700;            /* 🔹 gras fort uniquement pour l’enfant actif */
+  text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+
+/* Flèche du bloc actif (rotation douce) */
+.child-accordion.active h3 .arrow {
+  color: #fff;
+  opacity: 1;
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+
+.child-accordion.open h3 .arrow {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+/* === Noms d’enfants dans la sidebar === */
+.child-accordion h3 {
+  font-family: var(--font-main);
+  font-size: 1.15rem;        /* 🔹 taille augmentée pour meilleure lisibilité */
+  font-weight: 400;          /* 🔹 gras faible */
+  color: #fff;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+/* Ajustement des avatars pour rester proportionnés */
+.child-accordion h3 img.avatar {
+  width: 44px;
+  height: 44px;
+  margin-right: 0.6rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* === Enfant actif : mise en valeur renforcée === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.2);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 6px rgba(255,255,255,0.25);
+}
+
+.child-accordion.active h3 span {
+  color: #ffffff;
+  font-weight: 700;          /* 🔹 gras fort uniquement pour l’enfant actif */
+  text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+
+/* Flèche du bloc actif (rotation douce) */
+.child-accordion.active h3 .arrow {
+  color: #fff;
+  opacity: 1;
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+
+/* === Noms d’enfants dans la sidebar === */
+.child-accordion h3 {
+  font-family: var(--font-main);
+  font-size: 1.15rem;        /* 🔹 nom bien lisible */
+  font-weight: 400;          /* 🔹 gras faible */
+  color: #fff;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+}
+
+/* === Avatar agrandi dans la sidebar === */
+.child-accordion h3 img.avatar {
+  width: 56px;               /* 🔹 taille agrandie */
+  height: 56px;
+  margin-right: 0.7rem;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 6px rgba(0,0,0,0.25); /* petit relief doux */
+  border: 2px solid rgba(255,255,255,0.4);
+  flex-shrink: 0;            /* empêche la déformation du nom */
+}
+
+/* === Enfant actif : mise en valeur renforcée === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.2);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 8px rgba(255,255,255,0.25);
+}
+
+.child-accordion.active h3 span {
+  color: #ffffff;
+  font-weight: 700;          /* 🔹 gras fort uniquement pour l’enfant actif */
+  text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+
+/* === Flèche d’accordéon === */
+.child-accordion h3 .arrow {
+  font-size: 0.9rem;
+  margin-left: auto;
+  opacity: 0.8;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.child-accordion.open h3 .arrow {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+
+.child-accordion.open h3 .arrow {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+/* === Cellule enfant : compacte mais lisible === */
+.child-accordion h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-main);
+  font-size: 1.1rem;          /* taille légèrement réduite */
+  font-weight: 400;
+  color: #fff;
+  padding: 0.35rem 0.6rem;    /* 🔹 hauteur totale réduite */
+  margin: 0;                  /* supprime les marges verticales */
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+/* === Avatar : taille correcte mais plus resserré === */
+.child-accordion h3 img.avatar {
+  width: 48px;                /* 🔹 taille visuelle encore agréable */
+  height: 48px;
+  margin-right: 0.5rem;       /* 🔹 rapproche le nom de l’image */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.35);
+  box-shadow: 0 0 5px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+
+/* === Espacement entre enfants (plus serré) === */
+.child-accordion {
+  margin-bottom: 0.1rem;      /* 🔹 espace réduit entre deux blocs enfants */
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* === Enfant actif : garde son effet lumineux === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.18);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 6px rgba(255,255,255,0.25);
+}
+
+/* === Cellule enfant ultra-compacte === */
+.child-accordion h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-main);
+  font-size: 1.05rem;          /* taille lisible mais compacte */
+  font-weight: 400;
+  color: #fff;
+  padding: 0.25rem 0.55rem;    /* 🔹 très peu de hauteur */
+  margin: 0;
+  line-height: 1.1;            /* 🔹 texte plus serré */
+  cursor: pointer;
+  min-height: 42px;            /* 🔹 hauteur fixe pour une ligne fluide */
+}
+
+/* === Avatar compact === */
+.child-accordion h3 img.avatar {
+  width: 42px;                 /* 🔹 avatar légèrement réduit */
+  height: 42px;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  box-shadow: 0 0 4px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+
+/* === Espacement minimal entre enfants === */
+.child-accordion {
+  margin-bottom: 0;            /* 🔹 aucun espace vertical entre les lignes */
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* === Enfant actif : effet lumineux conservé === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.15);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 5px rgba(255,255,255,0.25);
+}
+
+/* === Options internes plus serrées aussi === */
+.child-accordion .options li {
+  padding: 0.15rem 0.9rem;     /* 🔹 réduit la hauteur des sous-liens */
+  font-size: 0.8rem;
+  line-height: 1.1;
+}
+/* === Cellule enfant : ultra compacte === */
+.child-accordion h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-main);
+  font-size: 1.05rem;        /* 🔹 lisible mais légèrement réduite */
+  font-weight: 400;          /* 🔹 gras faible */
+  color: #fff;
+  padding: 0.25rem 0.5rem;   /* 🔹 très peu d’espace vertical */
+  margin: 0;
+  line-height: 1.1;          /* 🔹 resserre le texte */
+  cursor: pointer;
+}
+
+/* === Avatar : plus petit et ajusté === */
+.child-accordion h3 img.avatar {
+  width: 42px;               /* 🔹 avatar réduit mais bien visible */
+  height: 42px;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.3);
+  box-shadow: 0 0 4px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+
+/* === Espacement minimal entre les enfants === */
+.child-accordion {
+  margin-bottom: 0;          /* 🔹 pas d’espace entre deux lignes */
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* === Enfant actif : garde son halo et bande bleue === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.18);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 5px rgba(255,255,255,0.25);
+}
+
+/* === Sous-liens internes (options) : compacts aussi === */
+.child-accordion .options li {
+  padding: 0.25rem 0.8rem;
+  font-size: 0.8rem;
+  line-height: 1.1;
+}
+/* === Cellule enfant compacte === */
+.child-accordion h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-main);
+  font-size: 1.1rem;          /* taille de texte lisible */
+  font-weight: 400;           /* gras léger */
+  color: #fff;
+  padding: 0.35rem 0.6rem;    /* 🔹 hauteur réduite */
+  margin: 0;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+/* === Avatar : 44px, bien aligné === */
+.child-accordion h3 img.avatar {
+  width: 44px;                /* ✅ taille demandée */
+  height: 44px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.35);
+  box-shadow: 0 0 5px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+
+/* === Espacement vertical réduit === */
+.child-accordion {
+  margin-bottom: 0.1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* === Enfant actif : halo + bordure bleue === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.18);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 6px rgba(255,255,255,0.25);
+}
+
+.child-accordion.active h3 span {
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+
+/* === Cellule enfant : compacte mais lisible === */
+.child-accordion h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-main);
+  font-size: 1.1rem;          /* taille légèrement réduite */
+  font-weight: 400;
+  color: #fff;
+  padding: 0.35rem 0.6rem;    /* 🔹 hauteur totale réduite */
+  margin: 0;                  /* supprime les marges verticales */
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+/* === Avatar : taille correcte mais plus resserré === */
+.child-accordion h3 img.avatar {
+  width: 48px;                /* 🔹 taille visuelle encore agréable */
+  height: 48px;
+  margin-right: 0.5rem;       /* 🔹 rapproche le nom de l’image */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.35);
+  box-shadow: 0 0 5px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+
+/* === Espacement entre enfants (plus serré) === */
+.child-accordion {
+  margin-bottom: 0.1rem;      /* 🔹 espace réduit entre deux blocs enfants */
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* === Enfant actif : garde son effet lumineux === */
+.child-accordion.active h3 {
+  background: rgba(255,255,255,0.18);
+  border-left: 3px solid var(--secondary);
+  box-shadow: 0 0 6px rgba(255,255,255,0.25);
+}
+
+/* === Options internes (Nom & Avatar, Tâches, Récompenses...) === */
+.child-accordion .options li {
+  padding: 0.35rem 1rem;
+  font-size: 0.95rem;             /* 🔹 police légèrement agrandie */
+  font-weight: 400;               /* 🔹 suppression du gras */
+  line-height: 1.3;
+  color: #fff !important;
+  font-family: var(--font-main);
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  transition: background 0.3s, transform 0.15s;
+}
+
+.child-accordion .options li:hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateX(2px);
+}
+
+/* === Options internes du bloc ⚙️ Paramètres === */
+#parametresAccordion .options li {
+  font-size: 1rem;            /* 🔹 taille augmentée pour meilleure lisibilité */
+  font-weight: 500;           /* 🔹 légèrement plus gras */
+  padding: 0.45rem 1.3rem;    /* 🔹 plus d’espace vertical pour aérer */
+  color: #fff;
+  font-family: var(--font-main);
+  letter-spacing: 0.01em;
+  transition: background 0.3s, transform 0.15s, opacity 0.3s;
+}
+
+#parametresAccordion .options li:hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateX(3px);
+  opacity: 1;
+}

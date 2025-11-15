@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparatif Espacement — Vue Jour</title>
+<style>
+  :root {
+    --accent-color: #2b6cb0;
+  }
+
+  body {
+    font-family: "Poppins", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    background: #f8f9fa;
+    color: #222;
+  }
+
+  h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+  }
+
+  .section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    width: fit-content;
+    text-align: center;
+  }
+
+  .jour-selector {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.8rem;
+  }
+
+  .jour-btn {
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background: #edf2f7;
+    color: #333;
+    transition: transform 0.15s ease, background-color 0.2s ease;
+  }
+
+  .jour-btn.active {
+    transform: scale(1.1);
+    background-color: var(--accent-color);
+    color: white;
+  }
+
+  /* === 1️⃣ Compact === */
+  .compact .jour-selector {
+    gap: 0.4rem;
+  }
+  .compact .jour-btn {
+    width: 3.4rem;
+    height: 3.4rem;
+    line-height: 3.4rem;
+    font-size: clamp(0.95rem, 2vw, 1.3rem);
+    font-weight: 700;
+    letter-spacing: -0.06em;
+    border-radius: 50%;
+  }
+
+  /* === 2️⃣ Équilibré === */
+  .equilibre .jour-selector {
+    gap: 0.55rem;
+  }
+  .equilibre .jour-btn {
+    width: 3.6rem;
+    height: 3.6rem;
+    line-height: 3.6rem;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    border-radius: 50%;
+  }
+
+  /* === 3️⃣ Aéré === */
+  .aere .jour-selector {
+    gap: 0.75rem;
+  }
+  .aere .jour-btn {
+    width: 3.8rem;
+    height: 3.8rem;
+    line-height: 3.8rem;
+    font-size: clamp(1rem, 2.6vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    border-radius: 50%;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .jour-btn {
+      width: 3rem !important;
+      height: 3rem !important;
+      line-height: 3rem !important;
+      font-size: 1.1rem !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="section compact">
+    <h2>1️⃣ Compact</h2>
+    <div class="jour-selector">
+      <button class="jour-btn">L</button>
+      <button class="jour-btn">M</button>
+      <button class="jour-btn active">M</button>
+      <button class="jour-btn">J</button>
+      <button class="jour-btn">V</button>
+      <button class="jour-btn">S</button>
+      <button class="jour-btn">D</button>
+    </div>
+  </div>
+
+  <div class="section equilibre">
+    <h2>2️⃣ Équilibré</h2>
+    <div class="jour-selector">
+      <button class="jour-btn">L</button>
+      <button class="jour-btn">M</button>
+      <button class="jour-btn active">M</button>
+      <button class="jour-btn">J</button>
+      <button class="jour-btn">V</button>
+      <button class="jour-btn">S</button>
+      <button class="jour-btn">D</button>
+    </div>
+  </div>
+
+  <div class="section aere">
+    <h2>3️⃣ Aéré</h2>
+    <div class="jour-selector">
+      <button class="jour-btn">L</button>
+      <button class="jour-btn">M</button>
+      <button class="jour-btn active">M</button>
+      <button class="jour-btn">J</button>
+      <button class="jour-btn">V</button>
+      <button class="jour-btn">S</button>
+      <button class="jour-btn">D</button>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+architecture de données
+=======================
+
+{
+  "schema": "dhkc-export",
+  "version": 1,
+  "exportedAt": "2025-11-14T13:45:00.000Z",
+  "data": {
+    "children": [ ... ],
+    "currentChild": 0
+  }
+}

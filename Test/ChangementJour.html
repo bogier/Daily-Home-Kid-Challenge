@@ -1,0 +1,34 @@
+<!-- NAVIGATION JOUR — à placer sous l’entête de la vue-jour -->
+<div id="jour-nav" class="jour-nav" data-week-locked="true">
+  <!-- Flèche Jour précédent -->
+  <button type="button" class="jour-arrow jour-prev" aria-label="Jour précédent" title="Jour précédent">
+    ◀
+  </button>
+
+  <!-- Libellé du jour affiché (optionnel si déjà présent ailleurs) -->
+  <div class="jour-label">
+    <span id="jour-label-text">Mardi</span>
+  </div>
+
+  <!-- Flèche Jour suivant -->
+  <button type="button" class="jour-arrow jour-next" aria-label="Jour suivant" title="Jour suivant">
+    ▶
+  </button>
+
+  <!-- Barre 7 jours cliquables (semaine affichée) -->
+  <div class="jour-chips" role="tablist" aria-label="Sélection du jour dans la semaine">
+    <!-- Lundi = index 0 -->
+    <button type="button" class="jour-chip" role="tab" aria-selected="false" data-day-idx="0" title="Lundi">L</button>
+    <button type="button" class="jour-chip" role="tab" aria-selected="true"  data-day-idx="1" title="Mardi">M</button>
+    <button type="button" class="jour-chip" role="tab" aria-selected="false" data-day-idx="2" title="Mercredi">M</button>
+    <button type="button" class="jour-chip" role="tab" aria-selected="false" data-day-idx="3" title="Jeudi">J</button>
+    <button type="button" class="jour-chip" role="tab" aria-selected="false" data-day-idx="4" title="Vendredi">V</button>
+    <button type="button" class="jour-chip" role="tab" aria-selected="false" data-day-idx="5" title="Samedi">S</button>
+    <button type="button" class="jour-chip" role="tab" aria-selected="false" data-day-idx="6" title="Dimanche">D</button>
+  </div>
+</div>
+
+<!-- HINT verrouillage (affiché si la semaine affichée != semaine courante) -->
+<div id="jour-lock-hint" class="jour-lock-hint" hidden>
+  🔒 Semaine verrouillée : la saisie est désactivée pour cette semaine.
+</div>

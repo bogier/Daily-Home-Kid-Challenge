@@ -4,7 +4,7 @@
    - Label du jour courant sous le bouton "Semaine" (vue Jour)
    - Bouton actif reste bleu marine (.tabs button.active)
    - Sidebar + accordéon enfants
-   - Vues Jour/Semaine/Mois + Résultats + Historique (Chart.js)
+   - Vues Jour/Semaine/Mois + Résultats + Historique 
    - Puzzle progressif + upload/suppression image
 */
 
@@ -14,11 +14,18 @@ let children = JSON.parse(localStorage.getItem("children")) || [];
 let currentChild = 0;
 const days = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
-function getChild(){ return children[currentChild]; }
+function getChild(){
+  if (!children || !children.length) return null;
+  if (currentChild < 0 || currentChild >= children.length) return null;
+  return children[currentChild];
+}
+
 function saveChildren(){ localStorage.setItem("children", JSON.stringify(children)); }
 
 /* ------------------- Init enfants ------------------- */
 function bootstrapIfEmpty(){
+  // 🚫 Ne rien recréer si une purge totale vient d’être faite
+  if (localStorage.getItem("purged") === "1") return;
   if(!children.length){
     children=[{
       settings:{
@@ -33,12 +40,14 @@ function bootstrapIfEmpty(){
         { name:"Devoirs",           weights:[1,1,1,1,1,0,0] }
       ],
       notes:{},
-      history:[]
+      history:[],
+      rewardsByWeek:{}   // ✅ placé à l’intérieur de l’objet enfant
     }];
     saveChildren();
   }
 }
 bootstrapIfEmpty();
+
 
 /* ------------------- Dates ------------------- */
 function formatDateFR(d){ return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}); }
@@ -51,7 +60,17 @@ let currentDate=new Date();
 function getWeekData(){ const m=getMonday(currentDate),s=getSunday(m); return {num:getWeekNumber(m),annee:m.getFullYear(),lundi:formatDateFR(m),dim:formatDateFR(s), m,s}; }
 function getWeekKey(){ const w=getWeekData(); return `${w.num}-${w.annee}`; }
 function getCurrentWeekKey(){ const today=new Date(); return `${getWeekNumber(today)}-${today.getFullYear()}`; }
-function changerSemaine(delta){ currentDate.setDate(currentDate.getDate()+delta*7); majUI(); }
+
+function syncCustomWeekIfVisible(){
+  const pane = document.getElementById("vue-recompenses");
+  const input = document.getElementById("customWeek");
+  if (pane && pane.classList.contains("active") && input) {
+    input.value = getWeekKey();
+  }
+}
+
+
+function changerSemaine(delta){ currentDate.setDate(currentDate.getDate()+delta*7); majUI(); syncCustomWeekIfVisible(); }
 
 /* ================= Sidebar & Gestion enfants ================= */
 
@@ -74,14 +93,38 @@ function rebuildSidebar(){
           <span><img src="${ch.settings.avatar || "img/default.png"}" class="avatar" alt=""> ${name}</span>
           <span class="arrow">▼</span>
         </h3>
+		
         <ul class="options">
-          <li onclick="openNameAvatar(${idx})">🖼️ Nom et avatar</li>
-          <li onclick="openTaskManager(${idx})">📋 Gestion des tâches</li>
-          <li onclick="openRewardsManager(${idx})">🎁 Gestion des récompenses</li>
-          <li onclick="exportChild(${idx})">📤 Exporter cet enfant</li>
-          <li onclick="deleteChild(${idx})">🗑️ Supprimer cet enfant</li>
-          <li onclick="selectChild(${idx}); showView('vue-jour')">📆 Suivi des tâches</li>
-          <li onclick="selectChild(${idx}); showView('vue-resultats')">🧩 Résultats</li>
+		<li onclick="openNameAvatar(${idx})" class="menu-nom-avatar">
+		<img src="icons/NomEtAvatars.png" alt="Nom et avatar" class="icon-nom-avatar">
+		  <span>Nom et avatar</span>
+		</li>
+		<li onclick="openTaskManager(${idx})" class="menu-taches">
+		  <img src="icons/taches.png" alt="Tâches" class="icon-taches">
+		  <span>Tâches</span>
+		</li>
+		<li onclick="openRewardsManager(${idx})" class="menu-recompenses">
+		  <img src="icons/recompenses.png" alt="Récompenses" class="icon-recompenses">
+		  <span>Récompenses</span>
+		</li>
+		<li onclick="exportChild(${idx})" class="menu-exporter">
+		  <img src="icons/exporter.png" alt="Exporter un enfant" class="icon-exporter">
+		  <span>Exporter cet enfant</span>
+		</li>
+		<li onclick="deleteChild(${idx})" class="menu-supprimer">
+		  <img src="icons/SupprimerEnfant.png" alt="Supprimer un enfant" class="icon-supprimer">
+		  <span>Supprimer cet enfant</span>
+		</li>
+		<li onclick="selectChild(${idx}); showView('vue-jour')" class="menu-suivi-taches">
+		  <img src="icons/taches.png" alt="Suivi des tâches" class="icon-suivi-taches">
+		  <span>Suivi des tâches</span>
+		</li>
+		<li onclick="selectChild(${idx}); showView('vue-resultats')" class="menu-resultats">
+		  <img src="icons/Resultats.png" alt="Résultats" class="icon-resultats">
+		  <span>Résultats</span>
+		</li>
+
+		  
         </ul>
       </li>`);
   });
@@ -91,21 +134,44 @@ function rebuildSidebar(){
 
 /* ---- CRUD enfants ---- */
 function selectChild(i){ currentChild=i; saveChildren(); majUI(); }
+
 function addChild(){
-  const n=prompt("Nom de l'enfant :");
-  if(!n) return;
-  children.push({
-    settings:{ childName:n.trim(), rewardLow:"", rewardHigh:"", thresholdLow:30, thresholdHigh:50 },
-    tasks:[], notes:{}, history:[]
-  });
-  saveChildren(); currentChild=children.length-1; majUI();
+  // Création rapide d’un enfant vide
+  const newChild = {
+    settings:{
+      childName:"",
+      avatar:null,
+      age:null,
+      gender:"non-defini",
+      rewardLow:"",
+      rewardHigh:"",
+      thresholdLow:30,
+      thresholdHigh:50
+    },
+    tasks:[],
+    notes:{},
+    history:[],
+    rewardsByWeek:{}   // ✅ structure pour récompenses personnalisées
+  };
+
+  // Ajout et sélection
+  children.push(newChild);
+  saveChildren();
+  currentChild = children.length - 1;
+
+  // ✅ Redirection immédiate vers la vue Nom & Avatar
+  openNameAvatar(currentChild);
+
+  // Ferme la sidebar pour une transition fluide
+  closeMenu();
 }
+
 function deleteChild(i){
   if(!confirm("Supprimer cet enfant ?")) return;
   children.splice(i,1);
-  if(!children.length) bootstrapIfEmpty();
   currentChild = Math.min(currentChild, children.length-1);
   saveChildren(); majUI();
+  showView('vue-accueil'); // ✅ retourne proprement à l’accueil
 }
 function renameChild(i){
   const cur = children[i].settings.childName || "";
@@ -120,6 +186,174 @@ function exportChild(i){
   a.href=u; a.download=`${children[i].settings.childName||'enfant'}.json`; a.click();
   URL.revokeObjectURL(u);
 }
+function exportAllData() {
+  if (!children || !children.length) {
+    alert("Aucune donnée à exporter (aucun enfant trouvé).");
+    return;
+  }
+
+  // On prépare le payload normalisé
+  const payload = {
+    schema: "dhkc-export",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: {
+      children: children,         // on prend l’état en mémoire
+      currentChild: currentChild  // index courant
+    }
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+
+  // Nom de fichier : dhkc-export-YYYYMMDD-HHMM.json
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const fileName =
+    "dhkc-export-" +
+    now.getFullYear() +
+    pad(now.getMonth() + 1) +
+    pad(now.getDate()) +
+    "-" +
+    pad(now.getHours()) +
+    pad(now.getMinutes()) +
+    ".json";
+
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  alert("✅ Fichier exporté.\nVous pouvez maintenant le communiquer (email, message, clé USB…) vers un autre appareil.");
+}
+
+function parseExportPayload(text) {
+  let obj;
+  try {
+    obj = JSON.parse(text);
+  } catch (e) {
+    alert("❌ Fichier invalide : JSON non lisible.");
+    return null;
+  }
+
+  // Cas “officiel” v1
+  if (obj && obj.schema === "dhkc-export") {
+    const data = obj.data || {};
+    if (!Array.isArray(data.children)) {
+      alert("❌ Fichier DHKC invalide : 'data.children' manquant ou incorrect.");
+      return null;
+    }
+    return {
+      children: data.children,
+      currentChild: typeof data.currentChild === "number" ? data.currentChild : 0
+    };
+  }
+
+  // Backward compat : on accepte aussi un export brut {children:[...]}
+  if (Array.isArray(obj.children)) {
+    return {
+      children: obj.children,
+      currentChild: typeof obj.currentChild === "number" ? obj.currentChild : 0
+    };
+  }
+
+  alert("❌ Ce fichier ne semble pas être un export DHKC valide.");
+  return null;
+}
+
+function handleImportAllMerge(event) {
+  const file = event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const parsed = parseExportPayload(e.target.result);
+    if (!parsed) return;
+
+    const importedChildren = parsed.children || [];
+    if (!importedChildren.length) {
+      alert("Aucun enfant dans le fichier à fusionner.");
+      return;
+    }
+
+    if (!confirm(
+      "Les données du fichier vont être fusionnées avec vos enfants existants.\n" +
+      "- Même prénom (et âge/genre compatibles) → données fusionnées.\n" +
+      "- Autres enfants → ajoutés à la suite.\n\n" +
+      "Aucune donnée actuelle ne sera supprimée.\nContinuer ?"
+    )) {
+      return;
+    }
+
+    if (!children) children = [];
+
+    let mergedCount = 0;
+    let addedCount = 0;
+
+    importedChildren.forEach((impChild) => {
+      const idx = findMatchingChildIndex(impChild);
+      if (idx === -1) {
+        // Nouvel enfant → on l'ajoute tel quel
+        children.push(impChild);
+        addedCount++;
+      } else {
+        // Fusion smart avec l'enfant existant
+        mergeChildData(children[idx], impChild);
+        mergedCount++;
+      }
+    });
+
+    saveChildren();
+    majUI();
+    showView("vue-accueil");
+
+    alert(
+      "✅ Fusion terminée.\n" +
+      `- ${mergedCount} enfant(s) fusionné(s) avec des profils existants.\n` +
+      `- ${addedCount} nouvel(aux) enfant(s) ajouté(s).`
+    );
+  };
+  reader.readAsText(file);
+}
+
+
+
+function handleImportAllReplace(event) {
+  const file = event.target.files[0];
+  event.target.value = ""; // permet de re-sélectionner le même fichier plus tard
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const parsed = parseExportPayload(e.target.result);
+    if (!parsed) return;
+
+    if (!confirm("⚠️ Ceci va remplacer TOUTES les données actuelles (tous les enfants, tâches, historique).\nContinuer ?")) {
+      return;
+    }
+
+    children = parsed.children || [];
+    currentChild = parsed.currentChild || 0;
+
+    // On persiste dans localStorage
+    saveChildren();
+    // On s'assure que currentChild reste dans le range
+    currentChild = Math.min(currentChild, Math.max(children.length - 1, 0));
+
+    majUI();
+    showView("vue-accueil");
+    alert("✅ Import terminé.\nToutes les données ont été remplacées par celles du fichier.");
+  };
+  reader.readAsText(file);
+}
+
+
 function handleImportChild(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
@@ -141,15 +375,51 @@ function importExample(){
   };
   children.push(demo); saveChildren(); currentChild=children.length-1; majUI();
 }
+
 function resetAllChildren(){
-  if(!confirm("Réinitialiser toutes les données (tâches/notes/historique) ?")) return;
-  children.forEach(c=>{ c.tasks=[]; c.notes={}; c.history=[]; });
-  saveChildren(); majUI();
+  if(!confirm("♻️ Réinitialiser TOUTES les données de CHAQUE enfant (nom, avatar, âge, genre, récompenses, seuils, tâches, notes, historique) ?")) return;
+
+  children = children.map(c => ({
+    settings: {
+      childName: "",             // prénom vidé
+      avatar: null,              // retour à l’avatar par défaut
+      avatarName: undefined,
+      age: null,
+      gender: "non-defini",
+      rewardLow: "",             // récompenses vidées
+      rewardHigh: "",
+      thresholdLow: 30,          // seuils par défaut
+      thresholdHigh: 50
+    },
+    tasks: [],                   // aucune tâche
+    notes: {},                   // aucune note
+    history: []                  // historique vierge
+  }));
+
+  saveChildren();
+  majUI();
+  alert("✅ Tous les enfants ont été entièrement réinitialisés.");
 }
+
 function purgeAll(){
   if(!confirm("Tout supprimer ?")) return;
-  children=[]; saveChildren(); bootstrapIfEmpty(); currentChild=0; majUI();
+
+  // Supprimer tout le stockage
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // Marquer la purge pour bloquer le bootstrap initial
+  localStorage.setItem("purged", "1");
+
+  // Réinitialiser les variables en mémoire
+  children = [];
+  currentChild = 0;
+
+  majUI();
+  alert("🗑️ Tous les enfants ont été supprimés !");
+   showView('vue-accueil'); // ✅ retourne proprement à l’accueil
 }
+
 
 /* ---- Raccourcis gestion ---- */
 function openTaskManager(i){
@@ -171,19 +441,6 @@ function openTaskManager(i){
     }
   }
 }
-function openRewardsManager(i){
-  selectChild(i);
-  const c=children[i];
-  const low = prompt("Récompense palier 1 :", c.settings.rewardLow||"");
-  if(low!==null) c.settings.rewardLow=low;
-  const high = prompt("Récompense palier 2 :", c.settings.rewardHigh||"");
-  if(high!==null) c.settings.rewardHigh=high;
-  const tLow = prompt("Seuil palier 1 (%) :", c.settings.thresholdLow||30);
-  if(tLow!==null) c.settings.thresholdLow = Number(tLow)||30;
-  const tHigh = prompt("Seuil palier 2 (%) :", c.settings.thresholdHigh||50);
-  if(tHigh!==null) c.settings.thresholdHigh = Number(tHigh)||50;
-  saveChildren(); majUI();
-}
 
 /* ================= En-têtes, titres & labels ================= */
 
@@ -192,41 +449,71 @@ function setWeekTitle(){
   const fmt=d=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long'});
   const weekTitle=document.getElementById("weekTitle");
   if(weekTitle) weekTitle.textContent=`${fmt(m)} – ${fmt(s)}`;
-  const weekTitleWeek=document.getElementById("weekTitle_week");
-  if(weekTitleWeek) weekTitleWeek.textContent=`Semaine ${getWeekNumber(m)} • ${m.getFullYear()}`;
   const monthTitle=document.getElementById("monthTitle");
   if(monthTitle) monthTitle.textContent=monthLabel(new Date(currentDate.getFullYear(), currentDate.getMonth(),1));
 }
 
 function setChildHeaders(){
-  const n=getChild().settings.childName||"Mon enfant";
-  const day=document.getElementById("currentChild_day");
-  const week=document.getElementById("currentChild_week");
-  const month=document.getElementById("currentChild_month");
-  if(day) day.textContent=n;
-  if(week) week.textContent=n;
-  if(month) month.textContent=n;
-  const title=document.getElementById("childTitle");
-  if(title) title.textContent="Résultats - "+n;
+  const child = getChild();
+  if (!child) return; // ✅ aucun enfant → on ne fait rien
+
+  const n = child.settings.childName || "Mon enfant";
+  const day    = document.getElementById("currentChild_day");
+  const month  = document.getElementById("currentChild_month");
+  const task   = document.getElementById("currentChild_tasks");
+  const reward = document.getElementById("currentChild_rewards");
+  if(day) day.textContent = n;
+  if(month) month.textContent = n;
+  if(task) task.textContent = n;
+  if(reward) reward.textContent = n;
+  const title = document.getElementById("childTitle");
+  if(title) title.textContent = "Résultats - " + n;
 }
 
-/* ---- Label du jour courant (affiché sous le bouton Semaine en vue Jour) ---- */
-function setCurrentDayLabel(){
+
+
+// Renvoie le nom du jour courant (en fonction de currentDate), ex : "Lundi"
+function getCurrentDayLongLabel(){
   const d = new Date(currentDate);
   const options = { weekday: 'long' };
   const jour = d.toLocaleDateString('fr-FR', options);
-  const lbl = document.getElementById("currentDayLabel");
-  if(lbl) lbl.textContent = jour.charAt(0).toUpperCase() + jour.slice(1);
+  return jour.charAt(0).toUpperCase() + jour.slice(1);
 }
+
+function setCurrentDayLabel(){
+  const lbl = document.getElementById("currentDayLabel");
+  if(lbl) lbl.textContent = getCurrentDayLongLabel();
+}
+
 
 /* ================= Vues Jour / Semaine / Mois ================= */
 
-function ensureNotesForWeek(child,key){
-  if(!child.notes) child.notes={};
-  if(!Array.isArray(child.notes[key])||child.notes[key].length!==(child.tasks?.length||0)){
-    child.notes[key]=(child.tasks||[]).map(()=>[0,0,0,0,0,0,0]);
+function ensureNotesForWeek(child, key){
+  if (!child.notes) child.notes = {};
+  const taskCount = (child.tasks?.length || 0);
+
+  if (!Array.isArray(child.notes[key])) {
+    child.notes[key] = [];
+  }
+  const arr = child.notes[key];
+
+  // Assure la forme [7] par ligne existante
+  for (let i = 0; i < arr.length; i++) {
+    if (!Array.isArray(arr[i]) || arr[i].length !== 7) {
+      arr[i] = [0,0,0,0,0,0,0];
+    }
+  }
+
+  // Étend si nouvelles tâches
+  while (arr.length < taskCount) {
+    arr.push([0,0,0,0,0,0,0]);
+  }
+  // Réduit si tâches en moins (on coupe la fin, cf. removeTask ci-dessous pour le cas index ciblé)
+  while (arr.length > taskCount) {
+    arr.pop();
   }
 }
+
 
 function majVueJour(){
   const tbody=document.querySelector("#vue-jour table tbody"); 
@@ -254,11 +541,11 @@ function majVueJour(){
         <td>${t.name}</td>
         <td class="rating-cell">
           <input type="radio" id="${name}v0" name="${name}" data-task="${i}" data-day="${dayIdx}" value="0" ${val==0?'checked':''} ${disable}>
-          <label for="${name}v0">❌</label>
+          <label for="${name}v0">🔴</label>
           <input type="radio" id="${name}v05" name="${name}" data-task="${i}" data-day="${dayIdx}" value="0.5" ${val==0.5?'checked':''} ${disable}>
-          <label for="${name}v05">⚠️</label>
+          <label for="${name}v05">️🟡</label>
           <input type="radio" id="${name}v1" name="${name}" data-task="${i}" data-day="${dayIdx}" value="1" ${val==1?'checked':''} ${disable}>
-          <label for="${name}v1">✅</label>
+          <label for="${name}v1">🟢</label>
         </td>
       </tr>`);
   });
@@ -293,50 +580,6 @@ function majLabelGroup(groupName){
   });
   const checked = document.querySelector(`input[name='${groupName}']:checked`);
   if(checked) checked.nextElementSibling.style.opacity = "1"; // celui choisi est bien visible
-}
-
-function majVueSemaine(){
-  const tbody=document.querySelector("#vue-semaine table tbody"); 
-  if(!tbody) return;
-  tbody.innerHTML="";
-  const child=getChild(); 
-  const key=getWeekKey(); 
-  ensureNotesForWeek(child,key);
-
-  if(!child.tasks.length){
-    tbody.innerHTML=`<tr><td colspan="8">⚠️ Aucune tâche définie</td></tr>`; 
-    return;
-  }
-
-  child.tasks.forEach((t,i)=>{
-    let row=`<tr><td>${t.name}</td>`;
-    days.forEach((_,d)=>{
-      const val = child.notes[key]?.[i]?.[d] ?? 0;
-      const disable=(key!==getCurrentWeekKey())?"disabled":"";
-      const name = `t${i}d${d}`;
-      row+=`
-        <td class="rating-cell">
-          <input type="radio" id="${name}v0" name="${name}" data-task="${i}" data-day="${d}" value="0" ${val==0?'checked':''} ${disable}>
-          <label for="${name}v0">❌</label>
-          <input type="radio" id="${name}v05" name="${name}" data-task="${i}" data-day="${d}" value="0.5" ${val==0.5?'checked':''} ${disable}>
-          <label for="${name}v05">⚠️</label>
-          <input type="radio" id="${name}v1" name="${name}" data-task="${i}" data-day="${d}" value="1" ${val==1?'checked':''} ${disable}>
-          <label for="${name}v1">✅</label>
-        </td>`;
-    });
-    row+="</tr>";
-    tbody.insertAdjacentHTML("beforeend",row);
-  });
-
-  // Écouteurs
-  tbody.querySelectorAll("input[type=radio]").forEach(r=>{
-    r.addEventListener("change",()=>{
-      sauverNotes(); 
-      calculer();
-      appliquerStyleRadio(r);   // applique style au clic
-    });
-    appliquerStyleRadio(r);     // applique style dès le rendu
-  });
 }
 
 function majVueMois(){
@@ -425,98 +668,504 @@ function sauverNotes(){
   });
 
   saveChildren();
-
+  majVueMois();
   // 🔹 Réafficher la vue jour immédiatement
   majVueJour();
+  majAvancementJournee();
+  renderRadials();
   calculer();
 }
 
 /* ================= Calcul, Résultats & Historique ================= */
 
-let historyChart=null;
+/**
+ * Renvoie les seuils (globaux) et les récompenses (overridables par semaine)
+ * pour la SEMAINE courante.
+ */
+function getWeeklyPaliersConfig(child, weekKey){
+  const t1 = Number(child?.settings?.thresholdLow  ?? 30);
+  const t2 = Number(child?.settings?.thresholdHigh ?? 50);
+
+  // Par défaut : récompenses globales
+  let r1 = child?.settings?.rewardLow  || "";
+  let r2 = child?.settings?.rewardHigh || "";
+
+  // Normalisation libellé palier
+  const tag = (s) => String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g,""); // "Palier 1" -> "palier1"
+
+  // Overrides semaine (prioritaires)
+  const arr = child?.rewardsByWeek?.[weekKey];
+  if (Array.isArray(arr) && arr.length){
+    for (const r of arr){
+      const p = tag(r.palier);
+      if ((p === "1" || p === "p1" || p === "palier1") && r?.reward) r1 = r.reward;
+      if ((p === "2" || p === "p2" || p === "palier2") && r?.reward) r2 = r.reward;
+    }
+  }
+  return { t1, r1, t2, r2 };
+}
+
+
+
+
+
+/**
+ * Met à jour l’affichage des 2 bandeaux “semaine”.
+ * - Affiche Palier 1 si pctWeek ≥ t1 ET r1 non vide
+ * - Affiche Palier 2 si pctWeek ≥ t2 ET r2 non vide
+ */
+function updateWeeklyRewardBanners(pctWeek, cfg){
+  const b1 = document.getElementById('rewardBannerW1');
+  const b2 = document.getElementById('rewardBannerW2');
+
+  if (b1){ b1.className = 'reward-banner hidden'; b1.innerHTML = ''; }
+  if (b2){ b2.className = 'reward-banner hidden'; b2.innerHTML = ''; }
+
+  const show1 = (pctWeek >= cfg.t1) && !!cfg.r1?.trim();
+  const show2 = (pctWeek >= cfg.t2) && !!cfg.r2?.trim();
+
+  if (show1 && b1){
+    b1.innerHTML = `<span class="badge">Palier 1</span> ${cfg.r1} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
+    b1.classList.remove('hidden'); b1.classList.add('palier-1','pop');
+    setTimeout(()=> b1.classList.remove('pop'), 300);
+  }
+  if (show2 && b2){
+    b2.innerHTML = `<span class="badge">Palier 2</span> ${cfg.r2} <span style="opacity:.6;font-weight:600">(${pctWeek.toFixed(1)}%)</span>`;
+    b2.classList.remove('hidden'); b2.classList.add('palier-2','pop');
+    setTimeout(()=> b2.classList.remove('pop'), 300);
+  }
+}
+
 
 function calculer(){
-  const child=getChild(); 
-  const key=getWeekKey(); 
+  const child = getChild(); 
+  const key = getWeekKey(); 
   ensureNotesForWeek(child,key);
-  const notes=child.notes[key]||[]; 
-  let total=0,done=0;
+  const notes = child.notes[key] || []; 
+  let total = 0, done = 0;
 
-  (child.tasks||[]).forEach((t,i)=>{
-    (notes[i]||[]).forEach((val=0)=>{ 
-      total+=1;         // chaque case vaut 1 point max
-      done+=parseFloat(val)||0; 
+  (child.tasks || []).forEach((t,i)=>{
+    (notes[i] || []).forEach((val=0)=>{ 
+      total += 1;         
+      done += parseFloat(val) || 0; 
     });
   });
 
-  const pct=total?(done/total*100):0;
+  const pct = total ? (done/total*100) : 0;
 
-  const res=document.getElementById("resultat"); 
-  if(res) res.textContent=`✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
-  const pb=document.getElementById("progressBar"); 
-  if(pb) pb.style.width=Math.min(100,Math.max(0,pct))+"%";
+  const res = document.getElementById("resultat"); 
+  if(res) res.textContent = `✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
+  const pb = document.getElementById("progressBar"); 
+  if(pb) pb.style.width = Math.min(100,Math.max(0,pct)) + "%";
+  
+  // ✅ Répéter l’affichage pour la vue Jour si présente
+const resJour = document.getElementById("resultatJour");
+if (resJour) resJour.textContent = `✅ ${done.toFixed(1)}/${total} pts (${pct.toFixed(1)}%)`;
+const pbJour = document.getElementById("progressBarJour");
+if (pbJour) pbJour.style.width = Math.min(100, Math.max(0, pct)) + "%";
 
-  const week=getWeekKey(); 
-  child.history=child.history||[];
-  let reward="❌ Aucune récompense", palier="-";
-  if(pct >= (child.settings.thresholdHigh||50) && child.settings.rewardHigh){
-    reward=`🏆 ${child.settings.rewardHigh}`; palier="Palier 2";
-  }else if(pct >= (child.settings.thresholdLow||30) && child.settings.rewardLow){
-    reward=`🎁 ${child.settings.rewardLow}`; palier="Palier 1";
+
+// ✅ Support multi-paliers par semaine
+const week = getWeekKey();
+let reward = "❌ Aucune récompense", palier = "-";
+const customRewards = child.rewardsByWeek?.[week];
+
+if (Array.isArray(customRewards) && customRewards.length > 0) {
+  // concatène tous les paliers en texte
+  reward = customRewards.map(r => r.reward).join(" + ");
+  palier = customRewards.map(r => r.palier).join(", ");
+} else {
+  if (pct >= (child.settings.thresholdHigh || 50) && child.settings.rewardHigh) {
+    reward = `${child.settings.rewardHigh}`;
+    palier = "Palier 2";
+  } else if (pct >= (child.settings.thresholdLow || 30) && child.settings.rewardLow) {
+    reward = `${child.settings.rewardLow}`;
+    palier = "Palier 1";
   }
-  const existing=child.history.find(h=>h.week===week);
-  if(existing){ existing.pct=pct.toFixed(1); existing.reward=reward; existing.palier=palier; }
-  else{ child.history.push({week, pct:pct.toFixed(1), reward, palier}); }
+}
+
+
+  // ⚙️ suite inchangée
+  child.history = child.history || [];
+  const existing = child.history.find(h => h.week === week);
+  if(existing){
+    existing.pct = pct.toFixed(1); 
+    existing.reward = reward; 
+    existing.palier = palier;
+  } else {
+    child.history.push({ week, pct:pct.toFixed(1), reward, palier });
+  }
   saveChildren();
+  
+// ➕ MAJ bandeaux RECOMPENSE (SEMAINE) — basé sur % de la SEMAINE
+const weekKey = getWeekKey();
+const cfg = getWeeklyPaliersConfig(child, weekKey);
+updateWeeklyRewardBanners(pct, cfg);
 
   majPuzzle(total,done);
   afficherHistorique();
   setChildHeaders();
 }
 
-function afficherHistorique(){
-  const body=document.getElementById("historiqueBody"); if(!body) return;
-  body.innerHTML="";
-  const hist=getChild().history||[]; let totalPct=0;
-  hist.forEach(h=>{
-    body.insertAdjacentHTML("beforeend",`<tr><td>${h.week}</td><td>${h.pct}%</td><td>${h.reward}</td><td>${h.palier}</td></tr>`);
-    totalPct += parseFloat(h.pct)||0;
-  });
-  if(hist.length){
-    const avg=(totalPct/hist.length).toFixed(1);
-    body.insertAdjacentHTML("beforeend",`<tr class="row-average"><td>Moyenne</td><td>${avg}%</td><td colspan="2"></td></tr>`);
-  }
 
-  const ctx=document.getElementById("historyChart")?.getContext("2d"); if(!ctx) return;
-  if(historyChart) historyChart.destroy();
+function majAvancementJournee() {
+  const pct = computeDailyProgressFromData();
+  const bar = document.getElementById('progressBarJournee');
+  const label = document.getElementById('resultatJournee');
+  if (bar) bar.style.width = pct + '%';
+  if (label) label.textContent = pct + '%';
+}
 
-  const secondary = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+// Calcule l'avancement du jour en lisant les données (0/1/2) pour le dayIdx courant.
+// Hypothèse: notes[weekKey][taskIdx][dayIdx][childIdx] ∈ {0,1,2}
+function computeDailyProgressFromData() {
+  try {
+    const child = getChild();
+    const weekKey = getWeekKey();
+    ensureNotesForWeek(child, weekKey);
 
-  historyChart=new Chart(ctx,{
-    type:"line",
-    data:{
-      labels: hist.map(h=>h.week),
-      datasets:[{
-        label:"% réussi",
-        data: hist.map(h=>+h.pct||0),
-        borderColor: secondary,
-        backgroundColor:"transparent",
-        fill:false,
-        tension:.25
-      }]
-    },
-    options:{
-      scales:{
-        y:{ beginAtZero:true, max:100, ticks:{ color:textColor } },
-        x:{ ticks:{ color:textColor } }
-      },
-      plugins:{
-        legend:{ labels:{ color:textColor } }
+    const d = new Date(currentDate);
+    const dayIdx = (d.getDay() === 0) ? 6 : (d.getDay() - 1);
+
+    let total = 0, sum = 0;
+    (child.tasks || []).forEach((t, i) => {
+      const val = child.notes[weekKey]?.[i]?.[dayIdx];
+      if (val !== undefined && val !== null) {
+        total += 1;
+        sum += parseFloat(val) || 0;
       }
+    });
+
+    if (total === 0) return 0;
+    return Math.round((sum / total) * 100);
+  } catch {
+    return 0;
+  }
+}
+
+
+function initDailyProgressListeners() {
+  const container = document.getElementById('vue-jour');
+  if (!container) return;
+  container.addEventListener('change', (e) => {
+    if (e.target && e.target.matches('input[type="radio"]')) {
+      // Laisse d'abord ton handler existant sauvegarder la valeur, puis recalcule
+      setTimeout(majAvancementJournee, 0);
     }
   });
 }
+
+/* ====== Radials (SVG segmentés) ====== */
+function polarToCartesian(cx, cy, r, angleDeg){
+  const rad = (angleDeg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function describeArc(cx, cy, r, startAngle, endAngle){
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+}
+
+/* Retourne le % semaine (sans effets de bord) */
+function computeWeekProgress(){
+  const child = getChild();
+  const key = getWeekKey();
+  ensureNotesForWeek(child, key);
+  let total = 0, done = 0;
+  (child.tasks || []).forEach((t,i)=>{
+    (child.notes[key]?.[i] || []).forEach(v => { total += 1; done += parseFloat(v)||0; });
+  });
+  return total ? Math.round(done/total*100) : 0;
+}
+
+/* Retourne le % mois courant */
+function computeMonthProgress(){
+  const child = getChild();
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const last = new Date(year, month+1, 0).getDate();
+  let total = 0, done = 0;
+
+  for(let d=1; d<=last; d++){
+    const date = new Date(year, month, d);
+    const dayIdx = (date.getDay() === 0) ? 6 : (date.getDay() - 1);
+    const weekKey = `${getWeekNumber(date)}-${date.getFullYear()}`;
+    ensureNotesForWeek(child, weekKey);
+    (child.tasks || []).forEach((t,i)=>{
+      const v = child.notes[weekKey]?.[i]?.[dayIdx];
+      if(v !== undefined){
+        total += 1;
+        done += parseFloat(v)||0;
+      }
+    });
+  }
+  return total ? Math.round(done/total*100) : 0;
+}
+
+function ensureNotesForWeekChild(child, weekKey){
+  if(!child.notes) child.notes = {};
+  if(!Array.isArray(child.notes[weekKey]) || child.notes[weekKey].length !== (child.tasks?.length || 0)){
+    child.notes[weekKey] = (child.tasks || []).map(()=>[0,0,0,0,0,0,0]);
+  }
+}
+
+function computeDailyForChildIdx(idx){
+  const child = children[idx]; if(!child) return 0;
+  const weekKey = getWeekKey();
+  ensureNotesForWeekChild(child, weekKey);
+  const d = new Date(currentDate);
+  const dayIdx = (d.getDay()===0)?6:(d.getDay()-1);
+  let total=0, sum=0;
+  (child.tasks || []).forEach((t,i)=>{
+    const v = child.notes[weekKey]?.[i]?.[dayIdx];
+    if(v !== undefined){ total+=1; sum += parseFloat(v)||0; }
+  });
+  return total? Math.round(sum/total*100) : 0;
+}
+
+function computeWeekForChildIdx(idx){
+  const child = children[idx]; if(!child) return 0;
+  const key = getWeekKey();
+  ensureNotesForWeekChild(child, key);
+  let total=0, sum=0;
+  (child.tasks || []).forEach((t,i)=>{
+    (child.notes[key]?.[i] || []).forEach(v=>{ total+=1; sum += parseFloat(v)||0; });
+  });
+  return total? Math.round(sum/total*100) : 0;
+}
+
+function computeMonthForChildIdx(idx){
+  const child = children[idx]; if(!child) return 0;
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const last = new Date(year, month+1, 0).getDate();
+  let total=0, sum=0;
+
+  for(let d=1; d<=last; d++){
+    const date = new Date(year, month, d);
+    const dayIdx = (date.getDay()===0)?6:(date.getDay()-1);
+    const weekKey = `${getWeekNumber(date)}-${date.getFullYear()}`;
+    ensureNotesForWeekChild(child, weekKey);
+    (child.tasks || []).forEach((t,i)=>{
+      const v = child.notes[weekKey]?.[i]?.[dayIdx];
+      if(v !== undefined){ total+=1; sum += parseFloat(v)||0; }
+    });
+  }
+  return total? Math.round(sum/total*100) : 0;
+}
+
+
+/* Dessine une jauge segmentée type "donut" avec 12 segments */
+function drawRadial(containerId, percent, strokeColor, label){
+  const host = document.getElementById(containerId);
+  if(!host) return;
+  host.innerHTML = "";
+
+  const size = 140;
+  const cx = size/2, cy = size/2;
+  const outerR = 64;     // anneau externe gris
+  const r = 56;          // rayon des segments
+  const segments = 12;   // nbre de “parts”
+  const gapDeg = 6;      // écart visuel entre parts
+  const partDeg = 360/segments;
+  const fillParts = Math.floor((percent/100) * segments);
+
+  // SVG
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+
+  // anneau gris externe
+  const outer = document.createElementNS(svg.namespaceURI, "circle");
+  outer.setAttribute("class", "outer-ring");
+  outer.setAttribute("cx", cx);
+  outer.setAttribute("cy", cy);
+  outer.setAttribute("r", outerR);
+  svg.appendChild(outer);
+
+  // segments de fond (gris)
+  for(let i=0;i<segments;i++){
+    const start = i*partDeg + gapDeg/2;
+    const end   = (i+1)*partDeg - gapDeg/2;
+    const p = document.createElementNS(svg.namespaceURI, "path");
+    p.setAttribute("d", describeArc(cx, cy, r, start, end));
+    p.setAttribute("class", "seg-bg");
+    svg.appendChild(p);
+  }
+
+  // segments colorés (jusqu’au floor du %)
+  for(let i=0;i<fillParts;i++){
+    const start = i*partDeg + gapDeg/2;
+    const end   = (i+1)*partDeg - gapDeg/2;
+    const p = document.createElementNS(svg.namespaceURI, "path");
+    p.setAttribute("d", describeArc(cx, cy, r, start, end));
+    p.setAttribute("class", "seg-fill");
+    p.setAttribute("stroke", strokeColor);
+    svg.appendChild(p);
+  }
+
+  host.appendChild(svg);
+
+  // pastille centrale (valeur + libellé)
+  const center = document.createElement("div");
+  center.className = "center";
+  center.innerHTML = `
+    <div class="badge">
+      <div class="pct">${percent}%</div>
+      <div class="lbl">${label}</div>
+    </div>`;
+  host.appendChild(center);
+}
+
+/* Met à jour les 3 jauges */
+function renderRadials(){
+  const pctDay  = computeDailyProgressFromData();
+  const pctWeek = computeWeekProgress();
+  const pctMonth= computeMonthProgress();
+
+  const css = getComputedStyle(document.documentElement);
+
+  drawRadial("radial-jour",    pctDay,  css.getPropertyValue("--color-jour").trim()    || "#1e63d1", "jour");
+  drawRadial("radial-semaine", pctWeek, css.getPropertyValue("--color-semaine").trim() || "#2ecc71", "semaine");
+  drawRadial("radial-mois",    pctMonth,css.getPropertyValue("--color-mois").trim()    || "#8e44ad", "mois");
+}
+
+function renderHome(){
+  const hero = document.getElementById('homeHero');
+  const title = document.getElementById('homeTitle');
+  const subtitle = document.getElementById('homeSubtitle');
+  const illustration = document.getElementById('homeIllustration');
+  const list = document.getElementById('homeChildren');
+
+  if(!hero || !title || !list) return;
+    // ✅ toujours repartir d’un conteneur vide
+  list.innerHTML = "";
+
+  const hasChildren = (children && children.length > 0);
+
+  if(!hasChildren){
+    // Mode "Bienvenue"
+    title.textContent = "Bienvenue dans le Daily Home Kid Challenge";
+    if(subtitle) subtitle.style.display = "";
+    if(illustration) illustration.style.display = "";
+    list.style.display = "none";
+    hero.style.display = "";
+    return;
+  }
+
+  // Mode "Récapitulatif"
+  title.textContent = "Bilan semaine";
+  if(subtitle) subtitle.style.display = "none";
+  if(illustration) illustration.style.display = "none";
+  hero.style.display = "";         // on garde le titre
+  list.style.display = "";         // on montre la grille
+
+  // Libellé du jour traité (ex : "Lundi")
+  const dayLabel = getCurrentDayLongLabel();
+
+  list.innerHTML = ""; // reset
+  children.forEach((ch, idx)=>{
+
+    const name = (ch?.settings?.childName || "Mon enfant").trim();
+    const avatar = ch?.settings?.avatar || "img/default.png";
+
+    const pctDay   = computeDailyForChildIdx(idx);
+    const pctWeek  = computeWeekForChildIdx(idx);
+    const pctMonth = computeMonthForChildIdx(idx);
+
+    const card = document.createElement('article');
+    card.className = "child-card";
+    card.innerHTML = `
+      <img class="card-avatar" src="${avatar}" alt="${name}">
+      <div>
+        <div class="card-title">${name}</div>
+
+        <div class="hc-bars">
+          <div class="hc-row">
+            <div class="hc-label">${dayLabel}</div>
+            <div class="hc-bar"><div class="hc-fill day"   style="width:${pctDay}%"></div></div>
+            <div class="hc-pct">${pctDay}%</div>
+          </div>
+
+          <div class="hc-row">
+            <div class="hc-label">Semaine</div>
+            <div class="hc-bar"><div class="hc-fill week"  style="width:${pctWeek}%"></div></div>
+            <div class="hc-pct">${pctWeek}%</div>
+          </div>
+          <div class="hc-row">
+            <div class="hc-label">Mois</div>
+            <div class="hc-bar"><div class="hc-fill month" style="width:${pctMonth}%"></div></div>
+            <div class="hc-pct">${pctMonth}%</div>
+          </div>
+        </div>
+      </div>
+    `;
+	// Rendre la carte cliquable → ouvrir la vue Jour de l’enfant
+card.setAttribute('role', 'button');
+card.setAttribute('tabindex', '0');
+card.setAttribute('title', `Ouvrir le suivi de ${name}`);
+
+card.addEventListener('click', () => {
+  selectChild(idx);
+  showView('vue-jour');
+});
+
+card.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    selectChild(idx);
+    showView('vue-jour');
+  }
+});
+
+    list.appendChild(card);
+  });
+}
+
+function afficherHistorique(){
+  const body = document.getElementById("historiqueBody");
+  if (!body) return;
+
+  body.innerHTML = "";
+
+  const child = getChild();
+  if (!child) return;
+
+  const hist = child.history || [];
+  let totalPct = 0;
+
+  hist.forEach(h => {
+    const pct = parseFloat(h.pct) || 0;
+    totalPct += pct;
+
+    body.insertAdjacentHTML(
+      "beforeend",
+      `<tr>
+         <td>${h.week}</td>
+         <td>${pct}%</td>
+         <td>${h.reward || ""}</td>
+         <td>${h.palier || ""}</td>
+       </tr>`
+    );
+  });
+
+  if (hist.length) {
+    const avg = (totalPct / hist.length).toFixed(1);
+    body.insertAdjacentHTML(
+      "beforeend",
+      `<tr class="row-average">
+         <td>Moyenne</td>
+         <td>${avg}%</td>
+         <td colspan="2"></td>
+       </tr>`
+    );
+  }
+}
+
 
 /* ================= Puzzle & Image ================= */
 
@@ -568,6 +1217,7 @@ menuBtn?.addEventListener("click", ()=>{ sidebar?.classList.contains("show") ? c
 overlay?.addEventListener("click", closeMenu);
 document.querySelector(".nav-list li:first-child")?.addEventListener("click", closeMenu);
 
+
 /* Accordéon enfants */
 document.addEventListener("click",(e)=>{
   const h3 = e.target.closest(".child-accordion > h3");
@@ -590,15 +1240,13 @@ function showView(id){
     document.querySelectorAll('.tabs button').forEach(btn=>{
       if(btn.textContent.trim() === "Jour") btn.classList.add("active");
     });
-  } else if(id === "vue-semaine") {
-    document.querySelectorAll('.tabs button').forEach(btn=>{
-      if(btn.textContent.trim() === "Semaine") btn.classList.add("active");
-    });
   } else if(id === "vue-mois") {
     document.querySelectorAll('.tabs button').forEach(btn=>{
       if(btn.textContent.trim() === "Mois") btn.classList.add("active");
     });
   }
+  // ✅ rafraîchir le contenu réel de l’accueil à chaque navigation
+  if(id === "vue-accueil"){ renderHome(); }
 
   // Toujours fermer le menu quand on change de vue
   closeMenu();
@@ -619,14 +1267,40 @@ window.switchTab = switchTab;
 
 function majUI(){
   rebuildSidebar();
+  renderHome();
+
+  // ✅ Si aucun enfant, on arrête là (pas de calculs, pas d’accès à getChild)
+  if (!children || children.length === 0) {
+    // On force l’accueil comme vue principale
+    showView("vue-accueil");
+
+    // On (re)branche quand même les boutons de maintenance
+    document.getElementById("btnResetChildren")?.addEventListener("click", resetAllChildren);
+    document.getElementById("btnPurgeAll")?.addEventListener("click", purgeAll);
+    return;
+  }
+
+  // ======= À partir d’ici, on sait qu’il y a au moins 1 enfant =======
   setWeekTitle();
   setChildHeaders();
-  setCurrentDayLabel();     // 🔹 Affiche le jour courant sous "Semaine" (vue Jour)
+  setCurrentDayLabel();
   majVueJour();
-  majVueSemaine();
+  majAvancementJournee();
   majVueMois();
   calculer();
+  renderRadials();
+  syncCustomWeekIfVisible();
+
+  // 🔹 (re)branche les boutons
+  document.getElementById("btnResetChildren")?.addEventListener("click", resetAllChildren);
+  document.getElementById("btnPurgeAll")?.addEventListener("click", purgeAll);
+
+  // Si aucune vue active, afficher la page d’accueil par défaut
+  if (!document.querySelector(".view.active")) {
+    showView("vue-accueil");
+  }
 }
+
 
 /* ===== Nom & Avatar ===== */
 function openNameAvatar(i){
@@ -645,7 +1319,7 @@ function openNameAvatar(i){
     };
   }
 
-  // Avatar existant
+
 // Avatar existant
 const avatarPreview = document.getElementById("avatarPreview");
 const avatarFileName = document.getElementById("avatarFileName");
@@ -661,6 +1335,27 @@ if (child.settings.avatar) {
   avatarPreview.src = "img/default.png";
   avatarFileName.textContent = "Avatar par défaut";
 }
+
+  // Âge
+  const ageInput = document.getElementById("inputChildAge");
+  if(ageInput){
+    ageInput.value = child.settings.age || "";
+    ageInput.oninput = () => {
+      child.settings.age = parseInt(ageInput.value) || null;  // <= sauvegarde dans settings
+      saveChildren();   // <= écrit dans localStorage
+    };
+  }
+
+  // Genre
+  document.querySelectorAll("input[name='childGender']").forEach(radio=>{
+    radio.checked = (child.settings.gender || "non-defini") === radio.value;
+    radio.onchange = () => {
+      if(radio.checked){
+        child.settings.gender = radio.value;  // <= sauvegarde dans settings
+        saveChildren();                       // <= écrit dans localStorage
+      }
+    };
+  });
 
 
 
@@ -700,7 +1395,7 @@ inputAvatar.onchange = (e) => {
       children[currentChild].settings.avatarName = file.name;
       avatarFileName.textContent = file.name;
       saveChildren();
-
+      majUI(); // ✅ met à jour la sidebar immédiatement
       console.log("✅ Avatar compressé et sauvegardé", dataUrl.substring(0, 50));
     };
     img.src = ev.target.result;
@@ -740,6 +1435,222 @@ function deleteAvatar(){
 
 
 /* ===== Gestion des tâches ===== */
+// Insère une ligne de notes (7 jours) à la fin pour toutes les semaines
+function notesAppendRowForAllWeeks(child){
+  if (!child.notes) child.notes = {};
+  for (const wk of Object.keys(child.notes)) {
+    child.notes[wk].push([0,0,0,0,0,0,0]);
+  }
+}
+
+// Supprime la ligne i pour toutes les semaines
+function notesRemoveRowForAllWeeks(child, i){
+  if (!child.notes) return;
+  for (const wk of Object.keys(child.notes)) {
+    if (Array.isArray(child.notes[wk]) && child.notes[wk][i] !== undefined) {
+      child.notes[wk].splice(i,1);
+    }
+  }
+}
+
+// Échange les lignes i et j pour toutes les semaines (pour moveTask)
+function notesSwapRowsForAllWeeks(child, i, j){
+  if (!child.notes) return;
+  for (const wk of Object.keys(child.notes)) {
+    const arr = child.notes[wk];
+    if (Array.isArray(arr) && arr[i] !== undefined && arr[j] !== undefined) {
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+}
+
+function normalizeName(str) {
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function findMatchingChildIndex(importedChild) {
+  if (!importedChild || !importedChild.settings) return -1;
+
+  const nameImp = normalizeName(importedChild.settings.childName || "");
+  if (!nameImp) return -1;
+
+  const ageImp = importedChild.settings.age ?? null;
+  const genderImp = importedChild.settings.gender || null;
+
+  for (let i = 0; i < children.length; i++) {
+    const c = children[i];
+    if (!c || !c.settings) continue;
+
+    const nameCur = normalizeName(c.settings.childName || "");
+    if (!nameCur || nameCur !== nameImp) continue;
+
+    const ageCur = c.settings.age ?? null;
+    const genderCur = c.settings.gender || null;
+
+    // Si les deux ont un âge, il doit matcher
+    if (ageImp !== null && ageCur !== null && ageImp !== ageCur) continue;
+
+    // Si les deux ont un genre, il doit matcher
+    if (genderImp && genderCur && genderImp !== genderCur) continue;
+
+    return i;
+  }
+  return -1;
+}
+
+function mergeChildSettings(target, source) {
+  if (!target.settings) target.settings = {};
+  if (!source.settings) return;
+
+  const t = target.settings;
+  const s = source.settings;
+
+  // On garde ce qui existe côté target, on complète avec source si vide
+  if (!t.childName && s.childName) t.childName = s.childName;
+  if (!t.avatar && s.avatar) {
+    t.avatar = s.avatar;
+    if (s.avatarName) t.avatarName = s.avatarName;
+  }
+  if ((t.age === null || t.age === undefined) && (s.age !== null && s.age !== undefined)) {
+    t.age = s.age;
+  }
+  if (!t.gender && s.gender) t.gender = s.gender;
+
+  // Récompenses globales : on ne remplace pas ce qui est renseigné
+  if (!t.rewardLow && s.rewardLow) t.rewardLow = s.rewardLow;
+  if (!t.rewardHigh && s.rewardHigh) t.rewardHigh = s.rewardHigh;
+  if ((t.thresholdLow === undefined || t.thresholdLow === null) && s.thresholdLow !== undefined) {
+    t.thresholdLow = s.thresholdLow;
+  }
+  if ((t.thresholdHigh === undefined || t.thresholdHigh === null) && s.thresholdHigh !== undefined) {
+    t.thresholdHigh = s.thresholdHigh;
+  }
+}
+
+function mergeRewardsByWeek(target, source) {
+  if (!source.rewardsByWeek) return;
+  if (!target.rewardsByWeek) target.rewardsByWeek = {};
+
+  for (const [week, arr] of Object.entries(source.rewardsByWeek)) {
+    if (!Array.isArray(arr) || !arr.length) continue;
+    if (!Array.isArray(target.rewardsByWeek[week])) {
+      target.rewardsByWeek[week] = [];
+    }
+    const destArr = target.rewardsByWeek[week];
+
+    arr.forEach(r => {
+      if (!r) return;
+      const rewardTxt = (r.reward || "").trim();
+      const pal = (r.palier || "").trim();
+      if (!rewardTxt) return;
+
+      const exists = destArr.some(x =>
+        (x.reward || "").trim() === rewardTxt &&
+        (x.palier || "").trim() === pal
+      );
+      if (!exists) destArr.push({ reward: rewardTxt, palier: pal });
+    });
+  }
+}
+
+function mergeHistory(target, source) {
+  if (!source.history || !Array.isArray(source.history)) return;
+  if (!target.history || !Array.isArray(target.history)) target.history = [];
+
+  const existingWeeks = new Set(target.history.map(h => h.week));
+  source.history.forEach(h => {
+    if (!h || !h.week) return;
+    if (!existingWeeks.has(h.week)) {
+      target.history.push(h);
+      existingWeeks.add(h.week);
+    }
+  });
+}
+
+function mergeTasksAndNotes(target, source) {
+  if (!target.tasks) target.tasks = [];
+  if (!target.notes) target.notes = {};
+  if (!source.tasks) source.tasks = [];
+  if (!source.notes) source.notes = {};
+
+  const targetTasks = target.tasks;
+  const sourceTasks = source.tasks;
+
+  // Map nom normalisé -> index dans target
+  const nameToIndex = {};
+  targetTasks.forEach((t, i) => {
+    const n = normalizeName(t.name || "");
+    if (n) nameToIndex[n] = i;
+  });
+
+  // mapping : index source -> index target
+  const mapping = [];
+
+  sourceTasks.forEach((tSrc, srcIdx) => {
+    const norm = normalizeName(tSrc.name || "");
+    if (!norm) return;
+
+    if (norm in nameToIndex) {
+      // tâche déjà existante → on utilise l'index existant
+      mapping[srcIdx] = nameToIndex[norm];
+      // on pourrait fusionner les weights ici si besoin
+    } else {
+      // nouvelle tâche → on l'ajoute
+      const newIndex = targetTasks.length;
+      targetTasks.push({
+        name: tSrc.name,
+        weights: Array.isArray(tSrc.weights) ? tSrc.weights.slice() : [1,1,1,1,1,0,0]
+      });
+      // on ajoute une ligne de notes vide pour toutes les semaines déjà présentes
+      notesAppendRowForAllWeeks(target);
+      nameToIndex[norm] = newIndex;
+      mapping[srcIdx] = newIndex;
+    }
+  });
+
+  // Maintenant on fusionne les notes
+  for (const [weekKey, srcRows] of Object.entries(source.notes)) {
+    if (!Array.isArray(srcRows)) continue;
+
+    // S'assure que target.notes[weekKey] existe et a la bonne taille
+    ensureNotesForWeek(target, weekKey);
+
+    const tgtRows = target.notes[weekKey];
+
+    srcRows.forEach((rowSrc, srcIdx) => {
+      const tgtIdx = mapping[srcIdx];
+      if (tgtIdx === undefined || tgtIdx === null) return;
+      if (!Array.isArray(rowSrc) || rowSrc.length !== 7) return;
+
+      // S'assure que la ligne existe côté target
+      if (!Array.isArray(tgtRows[tgtIdx]) || tgtRows[tgtIdx].length !== 7) {
+        tgtRows[tgtIdx] = [0,0,0,0,0,0,0];
+      }
+
+      for (let d = 0; d < 7; d++) {
+        const vExisting = parseFloat(tgtRows[tgtIdx][d]) || 0;
+        const vImported = parseFloat(rowSrc[d]) || 0;
+        // On garde le meilleur des deux
+        const merged = Math.max(vExisting, vImported);
+        tgtRows[tgtIdx][d] = merged;
+      }
+    });
+  }
+}
+
+function mergeChildData(target, source) {
+  if (!target || !source) return;
+
+  mergeChildSettings(target, source);
+  mergeTasksAndNotes(target, source);
+  mergeRewardsByWeek(target, source);
+  mergeHistory(target, source);
+}
+
+
 function openTaskManager(i){
   selectChild(i);
   renderTaskList();
@@ -750,6 +1661,8 @@ function renderTaskList(){
   const ul = document.getElementById("taskList");
   const child = getChild();
   if(!ul) return;
+  const hdr = document.getElementById("currentChild_tasks");
+  if (hdr) hdr.textContent = (child?.settings?.childName || "Mon enfant");
   ul.innerHTML = "";
   child.tasks.forEach((t, idx)=>{
     ul.insertAdjacentHTML("beforeend",`
@@ -769,14 +1682,37 @@ function addTask(){
   if(!input) return;
   const name = input.value.trim();
   if(!name) return;
-  getChild().tasks.push({ name, weights:[1,1,1,1,1,0,0] });
-  saveChildren();
+  const child = getChild();
+  child.tasks.push({ name, weights:[1,1,1,1,1,0,0] });
+  // ↳ ajoute la ligne correspondante dans toutes les semaines existantes
+  notesAppendRowForAllWeeks(child);
+  // Assure la cohérence de la semaine affichée
+  ensureNotesForWeek(child, getWeekKey());
+  saveChildren();  
+  // 💡 garantit qu'on est bien sur la vue Tâches AVANT de re-rendre
+  showView("vue-taches");  
   renderTaskList();
   input.value = "";
+  // 👀 focus/scroll sur la nouvelle entrée + petit flash
+  requestAnimationFrame(()=>{
+    const ul = document.getElementById("taskList");
+    const li = ul?.lastElementChild;
+    if(li){
+      li.scrollIntoView({behavior:"smooth", block:"end"});
+      li.classList.add("added");
+      setTimeout(()=>li.classList.remove("added"), 900);
+    }
+    // Remettre le focus pour enchaîner les ajouts au clavier
+    input?.focus();
+  });
 }
 
 function removeTask(i){
-  getChild().tasks.splice(i,1);
+  const child = getChild();
+  child.tasks.splice(i,1);
+  // ↳ supprime la ligne i partout
+  notesRemoveRowForAllWeeks(child, i);
+  ensureNotesForWeek(child, getWeekKey());
   saveChildren();
   renderTaskList();
 }
@@ -787,44 +1723,21 @@ function moveTask(i,dir){
   const j = i+dir;
   if(j<0 || j>=tasks.length) return;
   [tasks[i], tasks[j]] = [tasks[j], tasks[i]];
+  // ↳ swap des lignes de notes pour toutes les semaines
+  notesSwapRowsForAllWeeks(child, i, j);
+  ensureNotesForWeek(child, getWeekKey());
   saveChildren();
   renderTaskList();
 }
 
-/* ===== Gestion des récompenses ===== */
-function openRewardsManager(i){
-  selectChild(i);
-  const c = getChild();
-
-  const rLow = document.getElementById("inputRewardLow");
-  const rHigh = document.getElementById("inputRewardHigh");
-  const tLow = document.getElementById("inputThresholdLow");
-  const tHigh = document.getElementById("inputThresholdHigh");
-
-  if(rLow) rLow.value = c.settings.rewardLow || "";
-  if(rHigh) rHigh.value = c.settings.rewardHigh || "";
-  if(tLow) tLow.value = c.settings.thresholdLow || 30;
-  if(tHigh) tHigh.value = c.settings.thresholdHigh || 50;
-
-  showView("vue-recompenses");
+/* Le bouton manuel n’est plus nécessaire, mais tu peux le garder sans effet */
+function saveRewards(){
+  alert("💾 Sauvegarde automatique déjà activée !");
 }
 
+
 function saveRewards(){
-  const c = getChild();
-
-  const rLow = document.getElementById("inputRewardLow");
-  const rHigh = document.getElementById("inputRewardHigh");
-  const tLow = document.getElementById("inputThresholdLow");
-  const tHigh = document.getElementById("inputThresholdHigh");
-
-  if(rLow) c.settings.rewardLow = rLow.value.trim();
-  if(rHigh) c.settings.rewardHigh = rHigh.value.trim();
-  if(tLow) c.settings.thresholdLow = Number(tLow.value) || 30;
-  if(tHigh) c.settings.thresholdHigh = Number(tHigh.value) || 50;
-
-  saveChildren(); 
-  majUI();
-  alert("✅ Récompenses enregistrées");
+  alert("💾 Sauvegarde automatique déjà activée !");
 }
 
 function appliquerStyleRadio(r){
@@ -845,33 +1758,357 @@ function appliquerStyleRadio(r){
   }
 }
 
+function goBackToSidebar(){
+  // 🔄 Sauvegarde au cas où des changements n’ont pas encore été persistés
+  saveChildren();
+
+  // ✅ Rafraîchir l’interface pour mettre à jour l’avatar dans la sidebar
+  majUI();
+
+  // ✅ Réouvrir la sidebar (comme avant)
+  openMenu();
+}
+
+/* ===== Récompenses personnalisées par semaine ===== */
+/* ================= Récompenses personnalisées ================= */
+
+function addWeeklyReward() {
+  const child = getChild();
+  const week = document.getElementById("customWeek")?.value.trim();
+  const reward = document.getElementById("customReward")?.value.trim();
+  const palier = document.getElementById("customPalier")?.value;
+
+  if (!week || !reward) {
+    alert("Veuillez saisir la semaine et la récompense.");
+    return;
+  }
+
+  // 🔁 Toujours enregistrer sur la semaine affichée (pas sur la saisie)
+  const weekKey = getWeekKey();
+
+  // Palier normalisé (tolère 1 / p1 / palier1 / Palier 1)
+  const normPalier = (p) => {
+    const x = String(p || "").toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "");
+    if (x === "1" || x === "p1" || x === "palier1") return "Palier 1";
+    if (x === "2" || x === "p2" || x === "palier2") return "Palier 2";
+    return "Palier 1";
+  };
+  const palNorm = normPalier(palier);
+
+  if (!child.rewardsByWeek) child.rewardsByWeek = {};
+  if (!Array.isArray(child.rewardsByWeek[weekKey])) {
+    child.rewardsByWeek[weekKey] = [];
+  }
+
+  // Empêche doublon exact pour cette semaine/palier
+  const exists = child.rewardsByWeek[weekKey].some(
+    r => r.palier === palNorm && r.reward === reward
+  );
+  if (exists) {
+    alert("Cette récompense existe déjà pour cette semaine et ce palier.");
+    return;
+  }
+
+  child.rewardsByWeek[weekKey].push({ reward, palier: palNorm });
+  saveChildren();
+  majTableCustomRewards();
+
+  // ➜ rafraîchir immédiatement la vue Jour (bandeaux)
+  calculer();
+
+  const input = document.getElementById("customReward");
+  if (input) input.value = "";
+
+
+
+  saveChildren();
+  majTableCustomRewards();
+
+  // 🟢 Recalcule tout de suite pour mettre à jour les bandeaux en vue Jour
+  calculer();
+
+  document.getElementById("customReward").value = "";
+
+
+  saveChildren();
+  majTableCustomRewards();
+  document.getElementById("customReward").value = "";
+}
+
+/* === Affichage du tableau de récompenses personnalisées === */
+function majTableCustomRewards() {
+  const child = getChild();
+  const tbody = document.querySelector("#customRewardsTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  for (const [week, rewards] of Object.entries(child.rewardsByWeek || {})) {
+    rewards.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${week}</td>
+        <td>${r.reward}</td>
+        <td>${r.palier || "-"}</td>
+        <td><button onclick="deleteWeeklyReward('${week}', ${idx})">❌</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+/* === Suppression === */
+function deleteWeeklyReward(week, idx) {
+  const child = getChild();
+  if (!child.rewardsByWeek?.[week]) return;
+  child.rewardsByWeek[week].splice(idx, 1);
+  if (child.rewardsByWeek[week].length === 0) delete child.rewardsByWeek[week];
+  saveChildren();
+  majTableCustomRewards();
+  calculer(); // met à jour les bandeaux tout de suite
+}
+
+/* === Sauvegarde / affichage au chargement === */
+function openRewardsManager(i) {
+  selectChild(i);
+  showView("vue-recompenses");
+  
+// 🔒 Le champ "Semaine" est toujours la semaine affichée
+const weekInput = document.getElementById("customWeek");
+if (weekInput) {
+  const wk = getWeekKey();          // ex. "44-2025"
+  weekInput.value = wk;
+  weekInput.placeholder = wk;       // visible même si disabled
+  weekInput.readOnly = true;
+  weekInput.disabled = true;
+}
+
+  majTableCustomRewards();
+    // 🔹 Rattacher la sauvegarde automatique des seuils et récompenses de base
+  const c = getChild();
+
+  const inputRewardLow  = document.getElementById("inputRewardLow");
+  const inputRewardHigh = document.getElementById("inputRewardHigh");
+  const inputThresholdLow  = document.getElementById("inputThresholdLow");
+  const inputThresholdHigh = document.getElementById("inputThresholdHigh");
+
+  if (inputRewardLow) {
+    inputRewardLow.value = c.settings.rewardLow || "";
+    inputRewardLow.oninput = () => {
+      c.settings.rewardLow = inputRewardLow.value.trim();
+      saveChildren();
+    };
+  }
+
+  if (inputRewardHigh) {
+    inputRewardHigh.value = c.settings.rewardHigh || "";
+    inputRewardHigh.oninput = () => {
+      c.settings.rewardHigh = inputRewardHigh.value.trim();
+      saveChildren();
+    };
+  }
+
+  if (inputThresholdLow) {
+    inputThresholdLow.value = c.settings.thresholdLow || 30;
+    inputThresholdLow.oninput = () => {
+      c.settings.thresholdLow = parseFloat(inputThresholdLow.value) || 0;
+      saveChildren();
+    };
+  }
+
+  if (inputThresholdHigh) {
+    inputThresholdHigh.value = c.settings.thresholdHigh || 50;
+    inputThresholdHigh.oninput = () => {
+      c.settings.thresholdHigh = parseFloat(inputThresholdHigh.value) || 0;
+      saveChildren();
+    };
+  }
+updateRewardSummary();
+}
+
+function updateRewardSummary() {
+  const c = getChild();
+
+  const input1 = document.getElementById("summaryThreshold1");
+  const input2 = document.getElementById("summaryThreshold2");
+  const reward1 = document.getElementById("summaryReward1");
+  const reward2 = document.getElementById("summaryReward2");
+
+  // Initialisation des valeurs
+  input1.value = c.settings.thresholdLow || 0;
+  input2.value = c.settings.thresholdHigh || 0;
+  reward1.value = c.settings.rewardLow || "";
+  reward2.value = c.settings.rewardHigh || "";
+
+  // Sauvegarde automatique à la saisie
+  input1.oninput = () => { c.settings.thresholdLow = parseFloat(input1.value) || 0; saveChildren(); };
+  input2.oninput = () => { c.settings.thresholdHigh = parseFloat(input2.value) || 0; saveChildren(); };
+  reward1.oninput = () => { c.settings.rewardLow = reward1.value.trim(); saveChildren(); };
+  reward2.oninput = () => { c.settings.rewardHigh = reward2.value.trim(); saveChildren(); };
+}
+
+
+function renderCustomRewards() {
+  const c = getChild();
+  const tbody = document.querySelector("#customRewardsTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const rewards = c.rewardsByWeek || {};
+  for (const [week, data] of Object.entries(rewards)) {
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${week}</td>
+        <td>${data.reward}</td>
+        <td>${data.palier}</td>
+        <td><button onclick="deleteWeeklyReward('${week}')">🗑️</button></td>
+      </tr>
+    `);
+  }
+}
+
+function showToast(message, color = "var(--primary)") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.background = color;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+/* === Vue-jour : sélection du jour === */
+
+/** Retourne le dayIdx (0=Lundi..6=Dimanche) pour la currentDate dans SA semaine. */
+function getDayIdxInWeek(date) {
+  const monday = getMonday(date);                  // util déjà présent chez toi
+  const diffDays = Math.round((date - monday) / (24 * 3600 * 1000));
+  return Math.max(0, Math.min(6, diffDays));
+}
+
+/** Définit currentDate sur le jour d’index dayIdx dans la semaine ACTUELLEMENT affichée. */
+function setDayIdxInCurrentWeek(dayIdx) {
+  const monday = getMonday(currentDate);           // on ne change pas de semaine, on bouge juste le jour
+  const newDate = new Date(monday);
+  newDate.setDate(monday.getDate() + dayIdx);
+  currentDate = newDate;
+
+  // Rendu de la vue-jour (garde le verrouillage : radios disabled si semaine != courante)
+  majVueJour();
+  // <-- AJOUTER ICI :
+  majAvancementJournee();
+  renderRadials();
+
+  if (typeof updateJourSelectorUI === "function") updateJourSelectorUI();
+   
+}
+
+/** Met à jour la classe .active sur la bonne puce selon currentDate. */
+function updateJourSelectorUI() {
+  const container = document.getElementById('jour-selector');
+  if (!container) return;
+
+  const idx = getDayIdxInWeek(currentDate);
+  container.querySelectorAll('.jour-btn').forEach((btn) => {
+    const bIdx = parseInt(btn.getAttribute('data-day-idx'), 10);
+    if (bIdx === idx) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+/** Branche les listeners sur la barre 7 jours. À appeler une fois au chargement. */
+function initJourSelector() {
+  const container = document.getElementById('jour-selector');
+  if (!container) return;
+
+  // Clic sur une puce
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.jour-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.getAttribute('data-day-idx'), 10);
+    if (Number.isNaN(idx)) return;
+
+    // On autorise toujours la navigation jour, même si la semaine est verrouillée
+    // (le verrouillage s'applique à la SAISIE via les radios déjà disabled hors semaine courante)
+    setDayIdxInCurrentWeek(idx);
+  });
+
+  // Initialisation de l'état visuel
+  updateJourSelectorUI();
+}
+
+/* --- IMPORTANT : appeler initJourSelector au démarrage --- */
+// Exemple : dans ton init global existant
+document.addEventListener('DOMContentLoaded', () => {
+  // ... ton init existant ...
+  initJourSelector();
+
+  // Assure que la barre se met à jour quand la vue-jour se rafraîchit ou si la semaine change
+  // => si tu as déjà un hook après majVueJour() globale, sinon :
+  const _majVueJour = majVueJour;
+  window.majVueJour = function () {
+    _majVueJour.apply(this, arguments);
+    updateJourSelectorUI();
+  };
+});
+
 
 document.addEventListener("DOMContentLoaded",()=>{
   bootstrapIfEmpty();
   majUI();
+  initJourSelector();
+  updateJourSelectorUI(); // synchronise la puce bleue au premier rendu
+  showView("vue-accueil"); // ✅ vue par défaut au lancement
 
-  // Vue Jour : semaine précédente/suivante
-  document.getElementById("btnPrev")?.addEventListener("click",()=>changerSemaine(-1));
-  document.getElementById("btnNext")?.addEventListener("click",()=>changerSemaine(1));
+  document.getElementById("btnPrev")?.addEventListener("click",()=>{
+    changerSemaine(-1);
+    renderRadials();
+  });
+  document.getElementById("btnNext")?.addEventListener("click",()=>{
+    changerSemaine(1);
+    renderRadials();
+  });
 
-  // Vue Semaine : semaine précédente/suivante
-  document.getElementById("btnPrevWeek")?.addEventListener("click",()=>changerSemaine(-1));
-  document.getElementById("btnNextWeek")?.addEventListener("click",()=>changerSemaine(1));
-
-  // Vue Mois : mois précédent/suivant
   document.getElementById("btnPrevMonth")?.addEventListener("click",()=>{
     currentDate.setMonth(currentDate.getMonth()-1);
     majUI();
+    renderRadials();
   });
   document.getElementById("btnNextMonth")?.addEventListener("click",()=>{
     currentDate.setMonth(currentDate.getMonth()+1);
     majUI();
+    renderRadials();
   });
+
 
   // Résultats (upload / delete image)
   document.getElementById("btnUploadImage")?.addEventListener("click",uploadImage);
   document.getElementById("btnDeleteImage")?.addEventListener("click",deleteImage);
+
+  // 🔹 Ajout à faire ici :
+  initDailyProgressListeners();
+  majAvancementJournee();
+    // === Hook : après chaque rafraîchissement de la vue-jour, on met à jour la barre ===
+  const _majVueJour = majVueJour;
+  window.majVueJour = function () {
+    _majVueJour.apply(this, arguments);
+  // --> AJOUTS pour corriger le bug :
+  majAvancementJournee();  // recalcule le % jour pour le jour affiché
+  renderRadials();         // redessine les cercles (jour/semaine/mois)
+  // (si tu as la barre 7 jours) :
+  if (typeof updateJourSelectorUI === "function") updateJourSelectorUI();  
+  };
+
+  // Enter = Ajouter (après que le DOM est prêt)
+  const newTaskInput = document.getElementById("newTaskName");
+  if (newTaskInput) {
+    newTaskInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){ addTask(); }
+    });
+  }
+
 });
+
+
 
 /* ================= Exposition des handlers (globaux) ================= */
 
@@ -886,3 +2123,9 @@ window.importExample = importExample;
 window.addChild = addChild;
 window.resetAllChildren = resetAllChildren;
 window.purgeAll = purgeAll;
+window.addWeeklyReward = addWeeklyReward;
+window.renderCustomRewards = renderCustomRewards;
+window.deleteWeeklyReward = deleteWeeklyReward;
+window.exportAllData = exportAllData;
+window.handleImportAllReplace = handleImportAllReplace;
+window.handleImportAllMerge = handleImportAllMerge;

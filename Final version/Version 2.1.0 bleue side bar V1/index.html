@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <title>Daily Home Kid Challenge 2.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="stylesheet" href="style.css?v=3.5"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="puzzle-utils.js"></script>
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="app-header">
+    <button class="menu-btn" aria-label="Ouvrir le menu">&#9776;</button>
+    <h1>Daily Home Kid Challenge</h1>
+  </header>
+
+  <!-- ================= SIDEBAR ================= -->
+  <nav class="sidebar" id="sidebar">
+    <h2>Mon espace Famille</h2>
+    <div class="sidebar-grabber"></div>
+
+    <div class="sidebar-content">
+      <ul class="nav-list">
+        <li onclick="showView('vue-jour')">🏠 Accueil</li>
+      </ul>
+
+      <input id="importChildInput" type="file" accept="application/json" style="display:none" onchange="handleImportChild(event)">
+      <ul id="childrenList" class="nav-list children-list"></ul>
+
+    </div>
+
+<div class="sidebar-footer">
+  <ul class="nav-list footer-actions">
+    <li class="sidebar-link" onclick="addChild()">➕ Ajouter un enfant</li>
+    <li class="sidebar-link" onclick="document.getElementById('importChildInput').click()">📥 Importer un enfant</li>
+    <li class="sidebar-link" onclick="importExample()">🧪 Importer l'exemple</li>
+
+    <hr class="sidebar-separator">
+
+    <li id="btnResetChildren" class="sidebar-link">♻️ Réinitialiser les enfants</li>
+    <li id="btnPurgeAll" class="sidebar-link">🗑️ Purge totale</li>
+  </ul>
+
+  <hr class="sidebar-separator">
+
+  <a href="about.html" class="sidebar-link about-link">📘 <span>À propos</span></a>
+  <a href="install.html" class="sidebar-link install-link" title="Installer l’application">⬇️ <span>Installer l’app</span></a>
+</div>
+
+
+
+  </nav>
+
+  <!-- Overlay -->
+  <div id="overlay"></div>
+
+  <!-- ================= VUES ================= -->
+  <main class="view active" id="vue-jour">
+    <div class="view-header">
+      <div class="calendar">
+        <button id="btnPrev">&lt;</button>
+        <div class="calendar-title"><h2 id="weekTitle">1 Octobre 2025</h2></div>
+        <button id="btnNext">&gt;</button>
+      </div>
+
+      <p class="current-child" id="currentChild_day">—</p>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
+        <div class="day-label" id="currentDayLabel">—</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Tâche</th><th>Statut</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <main class="view" id="vue-semaine">
+    <div class="view-header">
+      <div class="calendar">
+        <button id="btnPrevWeek">&lt;</button>
+        <div class="calendar-title"><h2 id="weekTitle_week">Semaine</h2></div>
+        <button id="btnNextWeek">&gt;</button>
+      </div>
+      <p class="current-child" id="currentChild_week">—</p>
+      <div class="tabs">
+        <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab active" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Tâches</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <main class="view" id="vue-mois">
+    <div class="view-header">
+      <div class="calendar">
+        <button id="btnPrevMonth">&lt;</button>
+        <div class="calendar-title"><h2 id="monthTitle">Mois</h2></div>
+        <button id="btnNextMonth">&gt;</button>
+      </div>
+      <p class="current-child" id="currentChild_month">—</p>
+      <div class="tabs">
+        <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
+        <button class="tab" onclick="switchTab(this,'vue-semaine')">Semaine</button>
+        <button class="tab active" onclick="switchTab(this,'vue-mois')">Mois</button>
+      </div>
+    </div>
+    <div class="calendar-month"></div>
+  </main>
+
+  <main class="view result-view" id="vue-resultats">
+    <h2 id="childTitle">Résultats - Enfant</h2>
+    <div class="result-actions">
+      <button id="btnUploadImage" class="upload">📷</button>
+      <button id="btnDeleteImage" class="delete">🗑️</button>
+      <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+    </div>
+    <div class="puzzle-container">
+      <img src="img/puzzle.png" alt="Puzzle" class="puzzle-image">
+      <div class="puzzle-mask" id="puzzleMask"></div>
+    </div>
+    <div class="result" id="resultat"></div>
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+  </main>
+
+  <main class="view" id="vue-historique">
+    <h2>📖 Historique</h2>
+    <table>
+      <thead><tr><th>Semaine</th><th>% Réalisé</th><th>Récompense</th><th>Palier</th></tr></thead>
+      <tbody id="historiqueBody"></tbody>
+    </table>
+    <div id="chartContainer" style="height:280px;margin-top:16px;">
+      <canvas id="historyChart"></canvas>
+    </div>
+  </main>
+
+  <main class="view" id="vue-nom-avatar">
+    <div class="view-header">
+      <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
+      <h2>Nom & Avatar</h2>
+    </div>
+    <div class="param-section">
+      <div class="avatar-frame">
+        <div class="avatar-wrapper">
+          <img id="avatarPreview" src="img/default.png" alt="Avatar" class="avatar-large">
+          <button type="button" class="delete-avatar-btn" onclick="deleteAvatar()">🗑️</button>
+        </div>
+      </div>
+      <input type="file" id="inputAvatar" accept="image/*">
+      <p id="avatarFileName" class="avatar-filename">Avatar par défaut</p>
+      <label for="inputChildName">Nom de l’enfant :</label>
+      <input type="text" id="inputChildName" placeholder="Entrez le prénom">
+      <label for="inputChildAge">Âge :</label>
+      <input type="number" id="inputChildAge" min="0" max="20" placeholder="Entrez l’âge">
+      <label>Genre :</label>
+      <div class="gender-options">
+        <label><input type="radio" name="childGender" value="fille"> Fille</label>
+        <label><input type="radio" name="childGender" value="garçon"> Garçon</label>
+        <label><input type="radio" name="childGender" value="non-defini" checked> Non défini</label>
+      </div>
+    </div>
+    <div class="param-actions">
+      <button onclick="majUI()">❌ Annuler</button>
+    </div>
+  </main>
+
+  <main class="view" id="vue-taches">
+    <div class="view-header">
+      <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
+      <h2>📋 Gestion des tâches</h2>
+    </div>
+    <div class="param-section">
+      <div class="task-add">
+        <input type="text" id="newTaskName" placeholder="Nouvelle tâche">
+        <button class="save" onclick="addTask()">➕ Ajouter</button>
+      </div>
+      <ul id="taskList"></ul>
+    </div>
+    <div class="param-actions">
+      <button onclick="majUI()">❌ Annuler</button>
+    </div>
+  </main>
+
+  <main class="view" id="vue-recompenses">
+    <div class="view-header">
+      <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
+      <h2>🎁 Récompenses</h2>
+    </div>
+    <div class="param-section">
+      <label for="inputRewardLow">Récompense palier 1 :</label>
+      <input type="text" id="inputRewardLow" placeholder="Ex: Choisir un dessin animé">
+      <label for="inputThresholdLow">Seuil (%) palier 1 :</label>
+      <input type="number" id="inputThresholdLow" min="0" max="100" step="1">
+      <label for="inputRewardHigh">Récompense palier 2 :</label>
+      <input type="text" id="inputRewardHigh" placeholder="Ex: Sortie au parc">
+      <label for="inputThresholdHigh">Seuil (%) palier 2 :</label>
+      <input type="number" id="inputThresholdHigh" min="0" max="100" step="1">
+    </div>
+    <div class="param-actions">
+      <button onclick="majUI()">❌ Annuler</button>
+      <button class="save" onclick="saveRewards()">💾 Enregistrer</button>
+    </div>
+  </main>
+
+  <!-- ================= JS ================= -->
+  <script src="index.js?v=3.6"></script>
+
+<!-- ✅ Vérification simple sans double attachement -->
+<script>
+window.addEventListener("load", () => {
+  const resetBtn = document.getElementById("btnResetChildren");
+  const purgeBtn = document.getElementById("btnPurgeAll");
+
+  if (resetBtn) {
+    console.log("✅ Bouton 'Réinitialiser les enfants' détecté dans le DOM.");
+  } else {
+    console.warn("⚠️ Bouton 'Réinitialiser les enfants' introuvable.");
+  }
+
+  if (purgeBtn) {
+    console.log("✅ Bouton 'Purge totale' détecté dans le DOM.");
+  } else {
+    console.warn("⚠️ Bouton 'Purge totale' introuvable.");
+  }
+});
+</script>
+
+
+
+  <!-- 🔄 Service Worker Update Notification -->
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js').then(reg => {
+      console.log('[SW] Enregistré avec succès.');
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner(reg);
+          }
+        });
+      });
+    }).catch(err => console.warn('[SW] Erreur d’enregistrement :', err));
+  }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DHKC — Page Récompenses (finale modernisée)</title>
+  <style>
+    :root{
+      --primary:#12468B;
+      --primary-light:#4a90e2;
+      --primary-accent:#1e63d1;
+      --ok:#18a957;
+      --warn:#ffb020;
+      --danger:#e53935;
+      --bg:#f5f7fb;
+      --card:#fff;
+      --radius:16px;
+      --shadow:0 10px 25px rgba(18,70,139,.12);
+      --muted:#6b7280;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Open Sans",Arial,sans-serif;
+      background:linear-gradient(180deg,#f9fbff 0%, #f3f7ff 60%, #eef4ff 100%);
+      color:#0b2a52;
+    }
+
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px 80px;}
+    .hero{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+    .hero h1{font-size:1.6rem;margin:0;color:var(--primary);}
+    .badge{font-size:.85rem;background:var(--primary-light);color:#fff;padding:6px 12px;border-radius:999px;box-shadow:var(--shadow);}
+
+    .grid{display:grid;gap:1.2rem;}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:1.2rem;
+      position:relative;
+      overflow:hidden;
+    }
+    .card h2{margin-top:0;color:var(--primary);}
+    .help{color:var(--muted);font-size:.85rem;margin-bottom:.8rem;}
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 100px;
+      gap:.5rem;
+      margin:.5rem 0;
+      align-items:center;
+    }
+    .row input{
+      padding:.6rem .8rem;
+      border-radius:10px;
+      border:1px solid #d6d9e2;
+      font-size:.9rem;
+    }
+    .row input[type="number"]{width:80px;text-align:center;}
+    .row input:focus{outline:none;border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(74,144,226,.2);}
+
+    .btn{
+      background:var(--primary);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      padding:.6rem 1rem;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      transition:.25s;
+    }
+    .btn:hover{background:var(--primary-accent);}
+    .btn.ghost{background:#eef4ff;color:var(--primary);}
+
+    /* Personnalisées */
+    .inline-form{
+      display:grid;
+      grid-template-columns:120px 1fr 140px 100px;
+      gap:.6rem;
+      margin-bottom:.8rem;
+    }
+    @media(max-width:680px){
+      .inline-form{grid-template-columns:1fr;}
+    }
+    .inline-form input,
+    .inline-form select{
+      padding:.6rem .8rem;
+      border:1px solid #d6d9e2;
+      border-radius:10px;
+      font-size:.9rem;
+    }
+    .inline-form input[type="text"]:nth-child(2){flex:1;width:100%;}
+    .inline-form input:focus,
+    .inline-form select:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(74,144,226,.2);}
+
+    .toolbar{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem;align-items:center;}
+    .toolbar select,.toolbar button{padding:.5rem .8rem;border-radius:10px;border:1px solid #d6d9e2;}
+    .toolbar button{background:#fff;color:#333;cursor:pointer;}
+    .toolbar button.active{background:#eef4ff;color:var(--primary);font-weight:700;}
+
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+    thead th{background:#f2f6ff;color:var(--primary);text-align:left;padding:.6rem .8rem;border-bottom:1px solid #e6edff;}
+    tbody td{padding:.6rem .8rem;border-bottom:1px solid #eef2f8;}
+    tbody tr.row-low{background:linear-gradient(180deg,#f7fbff,#fff);}
+    tbody tr.row-high{background:linear-gradient(180deg,#f6fff7,#fff);}
+    .del{cursor:pointer;font-size:1.1rem;color:var(--danger);background:none;border:none;}
+    .del:hover{filter:brightness(.9);}
+
+    .toast{
+      position:fixed;
+      bottom:20px;
+      left:50%;
+      transform:translateX(-50%) scale(.96);
+      background:var(--primary);
+      color:#fff;
+      padding:.7rem 1.2rem;
+      border-radius:12px;
+      box-shadow:var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s,transform .25s;
+      z-index:1000;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) scale(1);}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>🎁 Récompenses — Version finale modernisée</h1>
+      <span class="badge">Prototype complet</span>
+    </div>
+
+    <div class="grid">
+      <!-- ===== Bloc 1 : standards ===== -->
+      <section class="card">
+        <h2>Récompenses standards (automatiques)</h2>
+        <p class="help">Attribuées automatiquement selon le % de réussite hebdomadaire.</p>
+
+        <div class="row"><label>Récompense palier 1</label><input id="rewardLow" type="text" placeholder="Ex: Choisir un dessin animé" /></div>
+        <div class="row"><label>Seuil (%)</label><input id="thresholdLow" type="number" value="30" /></div>
+        <div class="row"><label>Récompense palier 2</label><input id="rewardHigh" type="text" placeholder="Ex: Sortie au parc" /></div>
+        <div class="row"><label>Seuil (%)</label><input id="thresholdHigh" type="number" value="50" /></div>
+
+        <button class="btn" id="saveStandard">💾 Enregistrer les paliers</button>
+      </section>
+
+      <!-- ===== Bloc 2 : personnalisées ===== -->
+      <section class="card">
+        <h2>Récompenses personnalisées par semaine</h2>
+        <p class="help">Permet d’outrepasser les paliers pour des semaines spéciales.</p>
+
+        <div class="inline-form">
+          <input id="week" type="text" placeholder="Semaine (ex: 42-2025)" />
+          <input id="reward" type="text" placeholder="Récompense (ex: Sortie cinéma)" />
+          <select id="palier">
+            <option value="Palier 1">Palier 1</option>
+            <option value="Palier 2">Palier 2</option>
+            <option value="-">Autre</option>
+          </select>
+          <button class="btn" id="addReward">➕ Ajouter</button>
+        </div>
+
+        <div class="toolbar">
+          <button id="sortBtn" class="active">Tri par semaine ▲</button>
+          <label for="filterYear">Filtrer par année :</label>
+          <select id="filterYear"></select>
+          <button id="resetFilter" class="btn ghost">Réinitialiser</button>
+        </div>
+
+        <table>
+          <thead><tr><th>Semaine</th><th>Récompense</th><th>Palier</th><th></th></tr></thead>
+          <tbody id="rewardTable"></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const store = {
+      standards: {rewardLow:'',rewardHigh:'',thresholdLow:30,thresholdHigh:50},
+      rewardsByWeek:{
+        '05-2025':{reward:'Bowling 🎳',palier:'Palier 2'},
+        '20-2025':{reward:'Parc d’attractions 🎡',palier:'Palier 2'},
+        '42-2025':{reward:'Cinéma 🎬',palier:'Palier 1'},
+        '40-2024':{reward:'Dessert 🍰',palier:'Palier 1'},
+        '03-2026':{reward:'Atelier cuisine 👨‍🍳',palier:'Palier 1'}
+      }
+    };
+
+    function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day==0?-6:1);return new Date(d.setDate(diff));}
+    function getWeekNumber(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-yearStart)/86400000)+1)/7);}
+    function getWeekKey(date=new Date()){const m=getMonday(date);return `${getWeekNumber(m)}-${m.getFullYear()}`}
+
+    const toast=document.getElementById('toast');
+    function showToast(msg,color){toast.textContent=msg;toast.style.background=color||'var(--primary)';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1600);}
+
+    const rewardTable=document.getElementById('rewardTable');
+    const filterYear=document.getElementById('filterYear');
+    let sortAsc=true;
+
+    function renderFilter(){
+      const years=[...new Set(Object.keys(store.rewardsByWeek).map(k=>k.split('-')[1]))].sort();
+      filterYear.innerHTML='<option value=\"\">Toutes</option>'+years.map(y=>`<option>${y}</option>`).join('');
+    }
+
+    function renderTable(){
+      const filter=filterYear.value||'';
+      rewardTable.innerHTML='';
+      const sorted=Object.keys(store.rewardsByWeek).sort((a,b)=>{
+        const [wa,ya]=a.split('-').map(Number),[wb,yb]=b.split('-').map(Number);
+        const cmp=(ya!==yb)?ya-yb:wa-wb;
+        return sortAsc?cmp:-cmp;
+      });
+      sorted.forEach(k=>{
+        const [num,year]=k.split('-');
+        if(filter && year!==filter) return;
+        const r=store.rewardsByWeek[k];
+        const cls=r.palier==='Palier 2'?'row-high':'row-low';
+        rewardTable.insertAdjacentHTML('beforeend',`<tr class=\"${cls}\"><td>${k}</td><td>${r.reward}</td><td>${r.palier}</td><td><button class=\"del\" data-week=\"${k}\">🗑️</button></td></tr>`);
+      });
+    }
+
+    rewardTable.addEventListener('click',e=>{
+      const btn=e.target.closest('.del');
+      if(!btn) return;
+      const w=btn.dataset.week;
+      delete store.rewardsByWeek[w];
+      renderFilter();renderTable();
+      showToast('🗑️ Récompense supprimée','#344054');
+    });
+
+    document.getElementById('addReward').addEventListener('click',()=>{
+      const w=document.getElementById('week').value.trim();
+      const r=document.getElementById('reward').value.trim();
+      const p=document.getElementById('palier').value;
+      if(!/^\\d{1,2}-\\d{4}$/.test(w)){showToast('⚠️ Format semaine invalide','var(--warn)');return;}
+      if(!r){showToast('⚠️ Récompense vide','var(--warn)');return;}
+      store.rewardsByWeek[w]={reward:r,palier:p};
+      renderFilter();renderTable();
+      showToast('🎁 Récompense ajoutée !','var(--ok)');
+      document.getElementById('reward').value='';
+    });
+
+    document.getElementById('sortBtn').addEventListener('click',e=>{
+      sortAsc=!sortAsc;
+      e.target.textContent=sortAsc?'Tri par semaine ▲':'Tri par semaine ▼';
+      renderTable();
+    });
+
+    filterYear.addEventListener('change',renderTable);
+    document.getElementById('resetFilter').addEventListener('click',()=>{filterYear.value='';renderTable();});
+
+    document.getElementById('saveStandard').addEventListener('click',()=>{
+      store.standards.rewardLow=document.getElementById('rewardLow').value;
+      store.standards.rewardHigh=document.getElementById('rewardHigh').value;
+      store.standards.thresholdLow=document.getElementById('thresholdLow').value;
+      store.standards.thresholdHigh=document.getElementById('thresholdHigh').value;
+      showToast('✅ Paliers enregistrés');
+    });
+
+    // Init
+    document.getElementById('week').value=getWeekKey();
+    document.getElementById('week').placeholder=`Ex: ${getWeekKey()}`;
+    renderFilter();
+    renderTable();
+  </script>
+</body>
+</html>

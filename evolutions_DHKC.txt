@@ -1,0 +1,15 @@
+logo  - bleu blanc Rouge
+localstorage - export/import vers autre iphone ?
+suivi - changer logo /!\   par un sablier (moins agressif)
+Suivi semaine - ne pas faire de saisie, seulement afficher la vue avec le resultat dans les cases
+Saisie jour - prevoir de changer le jour pour saisir (le jour est une sorte de roulette de lundi à dimanche
+Suivi mois - afficher le pourcentage de réussite par jour sur le mois. les jour passés mettres les cases en bleu clair.
+Page Principale - faire une vue de l'avancée de tous les enfants avec 3 cercles qui s'imbriquent
+	le cercle intérieur c'est le porcentage d'exécution jour
+	le cercle au milieu c'est le porcentage d'exécution semaine
+	le cercle extérieur c'est le porcentage d'exécution mois
+Langues - 2 francais Anglais
+Puzzle - a finir
+
+
+prévoir une option reverse DHKC
