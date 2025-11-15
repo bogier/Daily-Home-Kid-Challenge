@@ -7,7 +7,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <link rel="manifest" href="manifest.json"/>
   <link rel="stylesheet" href="style.css?v=3.6"/>
-  <script src="puzzle-utils.js"></script>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 
@@ -221,15 +220,6 @@
 
   <main class="view result-view" id="vue-resultats">
     <h2 id="childTitle">Résultats - Enfant</h2>
-    <div class="result-actions">
-      <button id="btnUploadImage" class="upload">📷</button>
-      <button id="btnDeleteImage" class="delete">🗑️</button>
-      <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
-    </div>
-    <div class="puzzle-container">
-      <img src="img/puzzle.png" alt="Puzzle" class="puzzle-image">
-      <div class="puzzle-mask" id="puzzleMask"></div>
-    </div>
     <div class="result" id="resultat"></div>
     <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
   </main>

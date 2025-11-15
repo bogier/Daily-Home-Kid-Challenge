@@ -805,7 +805,6 @@ const weekKey = getWeekKey();
 const cfg = getWeeklyPaliersConfig(child, weekKey);
 updateWeeklyRewardBanners(pct, cfg);
 
-  majPuzzle(total,done);
   afficherHistorique();
   setChildHeaders();
 }
@@ -1164,44 +1163,6 @@ function afficherHistorique(){
        </tr>`
     );
   }
-}
-
-
-/* ================= Puzzle & Image ================= */
-
-function majPuzzle(total=0,done=0){
-  const mask=document.getElementById("puzzleMask"); if(!mask) return;
-  mask.innerHTML="";
-  if(total===0){ mask.innerHTML="<p style='color:#666;'>⚠️ Pas de tâches définies</p>"; return; }
-
-  const cols=Math.ceil(Math.sqrt(total)), totalCells=cols*cols;
-  mask.style.display="grid";
-  mask.style.gridTemplateColumns=`repeat(${cols},1fr)`;
-  mask.style.gap="0";
-
-  for(let i=0;i<totalCells;i++){
-    const p=document.createElement("div"); p.className="puzzle-piece"; mask.appendChild(p);
-  }
-  const pieces=mask.querySelectorAll(".puzzle-piece");
-  const order=[...Array(totalCells).keys()];
-  if(done>0){
-    setTimeout(()=>{ order.forEach((pos,i)=>{ if(i<done) setTimeout(()=>pieces[pos].classList.add("revealed"),120*i); }); },200);
-  }
-}
-
-/* Upload / Delete puzzle image */
-function uploadImage(){ document.getElementById("imageInput")?.click(); }
-function handleImageUpload(e){
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=x=>{ const img=document.querySelector(".puzzle-image"); if(img) img.src=x.target.result; };
-  r.readAsDataURL(f);
-}
-function deleteImage(){
-  const img=document.querySelector(".puzzle-image");
-  if(img) img.src="img/puzzle.png";
-  const input=document.getElementById("imageInput");
-  if(input) input.value="";
 }
 
 /* ================= Sidebar open/close + Accordéon ================= */
@@ -2078,11 +2039,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     majUI();
     renderRadials();
   });
-
-
-  // Résultats (upload / delete image)
-  document.getElementById("btnUploadImage")?.addEventListener("click",uploadImage);
-  document.getElementById("btnDeleteImage")?.addEventListener("click",deleteImage);
 
   // 🔹 Ajout à faire ici :
   initDailyProgressListeners();
