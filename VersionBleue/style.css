@@ -2214,3 +2214,27 @@ body.install-page .sidebar.show {
 @keyframes taskFlash { 0%{background:#fff7cc} 100%{background:transparent} }
 #taskList li.added { animation: taskFlash .9s ease-out; }
 
+/* Réduire la taille du texte dans le tableau de la vue Résultats */
+#vue-resultats table th,
+#vue-resultats table td {
+  font-size: 0.6rem; /* moitié de 0.9rem */
+}
+
+/* Réduire la taille de la 1ere colonne dans le tableau de la vue Résultats */
+#vue-resultats table td:nth-child(1),
+#vue-resultats table th:nth-child(1) {
+    width: 50px; 
+}
+
+/* Réduire la taille de la 2eme colonne dans le tableau de la vue Résultats */
+#vue-resultats table td:nth-child(2),
+#vue-resultats table th:nth-child(2) {
+    width: 50px; 
+}
+
+.current-child-inline {
+  font-weight: 600;
+  margin-left: .4rem;
+  color: var(--primary);
+  font-size: 1.5rem;
+}

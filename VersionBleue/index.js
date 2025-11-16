@@ -461,11 +461,14 @@ function setChildHeaders(){
   const day    = document.getElementById("currentChild_day");
   const month  = document.getElementById("currentChild_month");
   const task   = document.getElementById("currentChild_tasks");
+  const rewardResults = document.getElementById("currentChild_rewards_results");
   const reward = document.getElementById("currentChild_rewards");
+  
   if(day) day.textContent = n;
   if(month) month.textContent = n;
   if(task) task.textContent = n;
   if(reward) reward.textContent = n;
+  if(rewardResults) rewardResults.textContent = n;
   const title = document.getElementById("childTitle");
   if(title) title.textContent = "Résultats - " + n;
 }
@@ -1125,7 +1128,7 @@ card.addEventListener('keydown', (e) => {
   });
 }
 
-function afficherHistorique(){
+function afficherHistorique() {
   const body = document.getElementById("historiqueBody");
   if (!body) return;
 
@@ -1135,11 +1138,18 @@ function afficherHistorique(){
   if (!child) return;
 
   const hist = child.history || [];
+
   let totalPct = 0;
+  let countNonZero = 0;
 
   hist.forEach(h => {
     const pct = parseFloat(h.pct) || 0;
+
+    // 👉 on ignore les semaines à 0%
+    if (pct === 0) return;
+
     totalPct += pct;
+    countNonZero++;
 
     body.insertAdjacentHTML(
       "beforeend",
@@ -1147,23 +1157,25 @@ function afficherHistorique(){
          <td>${h.week}</td>
          <td>${pct}%</td>
          <td>${h.reward || ""}</td>
-         <td>${h.palier || ""}</td>
        </tr>`
     );
   });
 
-  if (hist.length) {
-    const avg = (totalPct / hist.length).toFixed(1);
+  // 👉 Moyenne (seulement sur les semaines affichées)
+  if (countNonZero > 0) {
+    const avg = (totalPct / countNonZero).toFixed(1);
     body.insertAdjacentHTML(
       "beforeend",
       `<tr class="row-average">
          <td>Moyenne</td>
          <td>${avg}%</td>
-         <td colspan="2"></td>
+         <td></td>
        </tr>`
     );
   }
 }
+
+
 
 /* ================= Sidebar open/close + Accordéon ================= */
 

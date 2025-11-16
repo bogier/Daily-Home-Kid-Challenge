@@ -218,27 +218,31 @@
     <div class="calendar-month"></div>
   </main>
 
-  <main class="view result-view" id="vue-resultats">
-    <h2 id="childTitle">Résultats - Enfant</h2>
-    <div class="result" id="resultat"></div>
-    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-  </main>
+<main class="view result-view" id="vue-resultats">
 
-<main class="view" id="vue-historique">
-  <h2>Historique</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Semaine</th>
-        <th>% Réalisé</th>
-        <th>Récompense</th>
-        <th>Palier</th>
-      </tr>
-    </thead>
-    <tbody id="historiqueBody"></tbody>
-  </table>
+<div class="view-header">
+  <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
+  <h2>
+    Résultats <span id="currentChild_rewards_results" class="current-child-inline">—</span>
+  </h2>
+</div>
+
+  <!-- Historique par semaine (pour cet enfant) -->
+  <section class="result-history">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Semaine</th>
+            <th>% </th>
+            <th>Récompense</th>
+          </tr>
+        </thead>
+        <tbody id="historiqueBody"></tbody>
+      </table>
+    </div>
+  </section>
 </main>
-
 
   <main class="view" id="vue-nom-avatar">
     <div class="view-header">
@@ -293,7 +297,6 @@
       <button onclick="openMenu()" class="back-btn">⬅ Retour</button>
       <h2>Récompenses</h2>
 	  <p class="current-child" id="currentChild_rewards">—</p>
-
     </div>
    
 <!-- 🔹 Paliers modifiables directement -->
