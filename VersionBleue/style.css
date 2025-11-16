@@ -1745,6 +1745,16 @@ body.install-page .sidebar.show {
   margin-bottom: 0.4rem;  /* espace avant la barre 7 jours */
 }
 
+.child-and-month {
+  display: flex;
+  align-items: center;     /* aligne verticalement */
+  justify-content: center; /* centre horizontalement */
+  gap: 0.4rem;             /* petit espace entre icône et nom */
+  
+  margin-top: 0.3rem;
+  margin-bottom: 0.4rem;
+}
+
 .current-child {
   font-size: 1.35rem;
   font-weight: 600;

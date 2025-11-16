@@ -209,7 +209,10 @@
         <div class="calendar-title"><h2 id="monthTitle">Mois</h2></div>
         <button id="btnNextMonth">&gt;</button>
       </div>
-      <p class="current-child" id="currentChild_month">—</p>
+      <div class="child-and-month">
+        <img src="icons/accueil.PNG" alt="Accueil" class="icon-home" onclick="showView('vue-accueil')" >
+        <p class="current-child" id="currentChild_month">—</p>
+      </div>	  
       <div class="tabs">
         <button class="tab" onclick="switchTab(this,'vue-jour')">Jour</button>
         <button class="tab active" onclick="switchTab(this,'vue-mois')">Mois</button>
