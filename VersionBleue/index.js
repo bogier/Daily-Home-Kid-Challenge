@@ -245,7 +245,7 @@ function parseExportPayload(text) {
   if (obj && obj.schema === "dhkc-export") {
     const data = obj.data || {};
     if (!Array.isArray(data.children)) {
-      alert("❌ Fichier DHKC invalide : 'data.children' manquant ou incorrect.");
+      alert("❌ Fichier Family Zen invalide : 'data.children' manquant ou incorrect.");
       return null;
     }
     return {
@@ -262,7 +262,7 @@ function parseExportPayload(text) {
     };
   }
 
-  alert("❌ Ce fichier ne semble pas être un export DHKC valide.");
+  alert("❌ Ce fichier ne semble pas être un export Family Zen valide.");
   return null;
 }
 
@@ -1051,7 +1051,7 @@ function renderHome(){
 
   if(!hasChildren){
     // Mode "Bienvenue"
-    title.textContent = "Bienvenue dans le Daily Home Kid Challenge";
+    title.textContent = "Bienvenue dans Family Zen";
     if(subtitle) subtitle.style.display = "";
     if(illustration) illustration.style.display = "";
     list.style.display = "none";
