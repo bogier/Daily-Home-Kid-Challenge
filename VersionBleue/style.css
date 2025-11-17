@@ -1531,10 +1531,13 @@ body.install-page .sidebar.show {
   font-size: 13px;
   color: #444;
 }
-/* Petits écrans */
-@media (max-width: 680px) {
-  .progress-duo { grid-template-columns: 1fr; }
+
+/* Petits écrans (profil détecté une fois au démarrage) */
+html.device-phone .progress-duo,
+html.device-small-phone .progress-duo {
+  grid-template-columns: 1fr;
 }
+
 
 /* ====== Radial Progress (jour / semaine / mois) ====== */
 :root{
@@ -1630,13 +1633,14 @@ body.install-page .sidebar.show {
   color: #333;
 }
 
-/* Mobile : les empile verticalement */
-@media (max-width: 600px) {
-  .radial-trio {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+/* Mobile : les empile verticalement (profil figé) */
+html.device-phone .radial-trio,
+html.device-small-phone .radial-trio,
+html.device-tablet .radial-trio {
+  flex-wrap: wrap;
+  gap: 10px;
 }
+
 /* ===== Bandeau Récompense (vue Jour) ===== */
 .reward-banner{
   margin: 8px auto 0;
@@ -1859,26 +1863,26 @@ body.install-page .sidebar.show {
   }
 }
 
-/* === Responsive : petit écran === */
-@media (max-width: 380px) {
-  #vue-jour .jour-selector {
-    gap: clamp(0.3rem, 1.2vw, 0.5rem);
-    padding-left:  calc(max(0.9rem, env(safe-area-inset-left)));
-    padding-right: calc(max(0.9rem, env(safe-area-inset-right)));
-  }
+/* === Responsive : petit écran (profil figé device-small-phone) === */
 
-  #vue-jour .jour-btn {
-    width: 3.2rem;
-    height: 3.2rem;
-    line-height: 3.2rem;
-    font-size: clamp(0.9rem, 2vw, 1.2rem);
-    letter-spacing: -0.14em;          /* encore un chouïa plus serré sur mobile */
-  }
-
-  #vue-jour .jour-btn.active {
-    transform: scale(0.92);           /* cercle actif encore plus petit sur mobile */
-  }
+html.device-small-phone #vue-jour .jour-selector {
+  gap: clamp(0.3rem, 1.2vw, 0.5rem);
+  padding-left:  calc(max(0.9rem, env(safe-area-inset-left)));
+  padding-right: calc(max(0.9rem, env(safe-area-inset-right)));
 }
+
+html.device-small-phone #vue-jour .jour-btn {
+  width: 3.2rem;
+  height: 3.2rem;
+  line-height: 3.2rem;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  letter-spacing: -0.14em;
+}
+
+html.device-small-phone #vue-jour .jour-btn.active {
+  transform: scale(0.92);
+}
+
 
 /* Respecte le réglage d’accessibilité “réduire les animations” */
 @media (prefers-reduced-motion: reduce) {

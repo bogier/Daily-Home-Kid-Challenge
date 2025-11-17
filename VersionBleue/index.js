@@ -7,6 +7,38 @@
    - Vues Jour/Semaine/Mois + Résultats + Historique 
    - Puzzle progressif + upload/suppression image
 */
+/* ================= Profil device (figé au démarrage) ================= */
+
+(function initDeviceProfileOnce() {
+  // On prend la vraie taille de l'écran, pas le viewport qui bouge avec le clavier
+  const sw = (window.screen && window.screen.width)  || window.innerWidth  || 1024;
+  const sh = (window.screen && window.screen.height) || window.innerHeight || 768;
+  const minSide = Math.min(sw, sh);
+
+  const profile = {
+    width: sw,
+    height: sh,
+    isSmallPhone: minSide <= 380,
+    isPhone:     minSide > 380 && minSide <= 480,
+    isTablet:    minSide > 480 && minSide <= 900,
+    isDesktop:   minSide > 900
+  };
+
+  // Accessible partout si besoin de logique JS plus tard
+  window.DEVICE_PROFILE = profile;
+
+  const root = document.documentElement;
+
+  if (profile.isSmallPhone) {
+    root.classList.add("device-small-phone", "device-phone");
+  } else if (profile.isPhone) {
+    root.classList.add("device-phone");
+  } else if (profile.isTablet) {
+    root.classList.add("device-tablet");
+  } else {
+    root.classList.add("device-desktop");
+  }
+})();
 
 /* ================= Données & utilitaires ================= */
 
