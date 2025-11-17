@@ -13,6 +13,16 @@
 
 * { box-sizing: border-box; margin:0; padding:0; }
 body { font-family: var(--font-main); background: var(--bg-light); color: var(--text-color); }
+/* Empêcher le zoom auto sur les champs (iOS / mobile) */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+textarea {
+  font-size: 16px;   /* clé : >= 16px */
+}
+
 button { cursor:pointer; }
 img { max-width:100%; }
 
@@ -1491,7 +1501,7 @@ body.install-page .sidebar.show {
   padding: 0.4rem;
   border: 1px solid #ddd;
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: 1rem;  /* 1rem = 16px si base = 16px */
 }
 
 /* ===== Progress Duo (vue-jour) ===== */
